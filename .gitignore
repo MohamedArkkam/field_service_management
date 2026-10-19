@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets/
+
+# Build outputs
+target/
+build/
+dist/
+out/
+*.class
+*.jar
+*.war
+
+# Logs & temp
+*.log
+logs/
+.tmp*/
+tmp/
+temp/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tooling caches
+.npm/
+.cache/
+coverage/
+.nyc_output/
