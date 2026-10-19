@@ -19,6 +19,7 @@ out/
 *.class
 *.jar
 *.war
+*.tsbuildinfo
 
 # Logs & temp
 *.log
@@ -40,3 +41,13 @@ desktop.ini
 .cache/
 coverage/
 .nyc_output/
+
+# Expo / React Native (M4+)
+.expo/
+android/
+ios/
+*.jks
+*.keystore
+
+# Vite
+apps/*/.vite/
