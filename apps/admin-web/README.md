@@ -2,12 +2,18 @@
 
 React + TypeScript (Vite) — **Admin / Owner** door.
 
-## M0
-Shell only. Domain screens start in M1 (projects, assignments, portfolio, internal bills/labour).
+## M1 screens
+- Login (ADMIN only)
+- Users: create Site Lead / Client
+- Projects: create/list with Admin-only priority/value
+- Project detail: milestones, assign Site Lead + Client, show progress link path/token
 
+## Run
 ```bash
+# API must be running on :8080
 npm install
 npm run dev
 ```
 
-Default Vite port: http://localhost:5173
+Open http://localhost:5173  
+Default admin: `admin@sitedirect.local` / `Admin123!`
