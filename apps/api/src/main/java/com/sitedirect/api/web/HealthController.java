@@ -12,7 +12,7 @@ public class HealthController {
         return Map.of(
                 "status", "ok",
                 "service", "sitedirect-api",
-                "milestone", "M1");
+                "milestone", "M2");
     }
 }
 

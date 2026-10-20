@@ -1,12 +1,22 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+import ProgressPage from './pages/ProgressPage'
 
 function App() {
   return (
-    <main className="shell">
-      <h1>SiteDirect — Client progress</h1>
-      <p>Client progress-link shell (M0).</p>
-      <p>Approved progress only — no bills or wages. Screens start in M2.</p>
-    </main>
+    <Routes>
+      <Route path="/p/:token" element={<ProgressPage />} />
+      <Route
+        path="/"
+        element={
+          <main className="page">
+            <h1>SiteDirect</h1>
+            <p className="muted">Open your project progress link: /p/…</p>
+          </main>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
