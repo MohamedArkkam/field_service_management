@@ -25,3 +25,12 @@ management:
     web:
       exposure:
         include: health,info
+
+sitedirect:
+  jwt:
+    secret: ${SITEDIRECT_JWT_SECRET:sitedirect-dev-secret-change-me-use-at-least-32-bytes!!}
+    expiration-ms: ${SITEDIRECT_JWT_EXPIRATION_MS:86400000}
+  seed:
+    admin-email: ${SITEDIRECT_ADMIN_EMAIL:admin@sitedirect.local}
+    admin-password: ${SITEDIRECT_ADMIN_PASSWORD:Admin123!}
+    admin-name: ${SITEDIRECT_ADMIN_NAME:SiteDirect Admin}
