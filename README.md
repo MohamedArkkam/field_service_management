@@ -50,8 +50,9 @@ Copy `.env.example` if you need local env overrides (do not commit `.env`).
 - **M1** — auth/roles, projects, milestones, assignments, progress link token (merged)  
 - **M2** — publish gate (Site Lead approve + rate) + client progress view (`apps/client-web`)  
 - **M3** — site purchases + attendance/wages + Admin outstanding liabilities (API-first Site Lead)  
-- **M4** — Site Lead Expo app (not started)  
+- **M4** — Site Lead Expo app (Expo Go / online-required)  
 - **M5** — hardening: integration tests, OpenAPI, CI, deploy-ready health/docs  
+
 
 
 
