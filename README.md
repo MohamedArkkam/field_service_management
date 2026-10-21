@@ -49,5 +49,7 @@ Copy `.env.example` if you need local env overrides (do not commit `.env`).
 - **M0** — scaffold  
 - **M1** — auth/roles, projects, milestones, assignments, progress link token (merged)  
 - **M2** — publish gate (Site Lead approve + rate) + client progress view (`apps/client-web`)  
-- **M3+** — bills/labour, Site Lead Expo app  
+- **M3** — site purchases + attendance/wages + Admin outstanding liabilities (API-first Site Lead)  
+- **M4+** — Site Lead Expo app  
+
 

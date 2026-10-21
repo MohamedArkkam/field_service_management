@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { getToken } from './api'
+import LiabilitiesPage from './pages/LiabilitiesPage'
 import LoginPage from './pages/LoginPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -37,6 +38,14 @@ function App() {
         element={
           <RequireAuth>
             <UsersPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/liabilities"
+        element={
+          <RequireAuth>
+            <LiabilitiesPage />
           </RequireAuth>
         }
       />

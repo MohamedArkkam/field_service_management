@@ -116,4 +116,24 @@ export const api = {
     request<{ token: string; path: string; absoluteHint: string }>(
       `/api/projects/${id}/progress-link`,
     ),
+  liabilities: () => request<LiabilityOverview>('/api/admin/liabilities'),
+}
+
+export type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID'
+
+export type ProjectLiabilitySummary = {
+  projectId: string
+  projectName: string
+  purchaseOutstanding: number
+  labourOutstanding: number
+  totalOutstanding: number
+  openPurchaseCount: number
+  openLabourCount: number
+}
+
+export type LiabilityOverview = {
+  totalPurchaseOutstanding: number
+  totalLabourOutstanding: number
+  totalOutstanding: number
+  projects: ProjectLiabilitySummary[]
 }

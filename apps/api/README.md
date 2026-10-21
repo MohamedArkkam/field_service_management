@@ -2,13 +2,14 @@
 
 Java 21 · Spring Boot · PostgreSQL · Flyway · JWT security
 
-## M2
-- Publish gate: Site Lead creates draft progress, then **approve + rate** to publish
-- Public client progress: `GET /api/public/p/{token}` — **published only**
-- Site Lead (API-first until M4): `/api/site/projects…`
-- Admin can list all progress (draft + published) on a project
+## M3
+- Site purchases: **UNPAID / PARTIAL / PAID** (amount + amountPaid)
+- Workers: **DAILY** wage or **MONTHLY** salary
+- Attendance creates labour liability (daily per day; monthly once per calendar month)
+- Admin outstanding liability overview: `GET /api/admin/liabilities`
+- Site Lead logs via `/api/site/...` (mobile later)
 
-Not in M2: bills/labour (M3), Site Lead mobile (M4).
+**Hard rule:** `/api/public/**` and Client role never see bills, wages, or attendance.
 
 ## Roles
 - `ADMIN` / `SITE_LEAD` / `CLIENT`
@@ -16,20 +17,16 @@ Not in M2: bills/labour (M3), Site Lead mobile (M4).
 
 ## Run
 ```bash
-# repo root — needs free host port 5432 (stop any local Postgres if it conflicts)
-docker compose up -d
+docker compose up -d   # free host :5432 if local Postgres conflicts
 cd apps/api
 mvn spring-boot:run
 ```
 
-Datasource defaults match `docker-compose.yml` (`sitedirect` / `sitedirect` on `localhost:5432`). Override with `SPRING_DATASOURCE_*` if needed.
-
 ## Key endpoints
-- Health: `GET /api/health`
-- Login: `POST /api/auth/login`
-- Admin projects/users: `/api/projects`, `/api/users`
-- Site Lead progress:  
-  - `GET /api/site/projects`  
-  - `POST /api/site/projects/{id}/progress` (draft)  
-  - `POST /api/site/projects/{id}/progress/{progressId}/publish` `{ "rating": 1-5 }`
-- Client (no auth): `GET /api/public/p/{token}`
+- Public (no auth): `GET /api/public/p/{token}` — published progress only
+- Site Lead:  
+  - `POST/GET /api/site/projects/{id}/workers`  
+  - `POST/GET /api/site/projects/{id}/purchases` · `PUT .../purchases/{id}/payment`  
+  - `POST/GET /api/site/projects/{id}/attendance`  
+  - `GET /api/site/projects/{id}/labour` · `PUT .../labour/{id}/payment`
+- Admin: `GET /api/admin/liabilities` (+ per-project workers/purchases/attendance/labour)

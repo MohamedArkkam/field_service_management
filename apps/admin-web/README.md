@@ -2,11 +2,12 @@
 
 React + TypeScript (Vite) — **Admin / Owner** door.
 
-## M1 screens
+## Screens
 - Login (ADMIN only)
 - Users: create Site Lead / Client
 - Projects: create/list with Admin-only priority/value
 - Project detail: milestones, assign Site Lead + Client, show progress link path/token
+- **Liabilities (M3):** outstanding Unpaid/Partial purchases + open labour charges
 
 ## Run
 ```bash
