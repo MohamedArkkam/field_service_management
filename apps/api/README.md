@@ -2,18 +2,19 @@
 
 Java 21 · Spring Boot · PostgreSQL · Flyway · JWT security
 
-## M3
-- Site purchases: **UNPAID / PARTIAL / PAID** (amount + amountPaid)
-- Workers: **DAILY** wage or **MONTHLY** salary
-- Attendance creates labour liability (daily per day; monthly once per calendar month)
-- Admin outstanding liability overview: `GET /api/admin/liabilities`
-- Site Lead logs via `/api/site/...` (mobile later)
+## M5 hardening
+- Integration tests (`SiteDirectApiIntegrationTest`) — Docker CLI Postgres
+- OpenAPI / Swagger UI: http://localhost:8080/swagger-ui.html
+- Actuator: `/actuator/health` (liveness/readiness probes enabled)
+- App health: `GET /api/health` (milestone marker)
 
-**Hard rule:** `/api/public/**` and Client role never see bills, wages, or attendance.
+## Product surface (M1–M3)
+- Auth roles: `ADMIN` / `SITE_LEAD` / `CLIENT`
+- Projects, publish gate, public progress token
+- Site purchases + attendance/labour (internal)
+- **Hard rule:** `/api/public/**` and Client never see bills/wages/attendance
 
-## Roles
-- `ADMIN` / `SITE_LEAD` / `CLIENT`
-- Seeded admin: `admin@sitedirect.local` / `Admin123!`
+Seeded admin: `admin@sitedirect.local` / `Admin123!`
 
 ## Run
 ```bash
@@ -22,11 +23,13 @@ cd apps/api
 mvn spring-boot:run
 ```
 
-## Key endpoints
-- Public (no auth): `GET /api/public/p/{token}` — published progress only
-- Site Lead:  
-  - `POST/GET /api/site/projects/{id}/workers`  
-  - `POST/GET /api/site/projects/{id}/purchases` · `PUT .../purchases/{id}/payment`  
-  - `POST/GET /api/site/projects/{id}/attendance`  
-  - `GET /api/site/projects/{id}/labour` · `PUT .../labour/{id}/payment`
-- Admin: `GET /api/admin/liabilities` (+ per-project workers/purchases/attendance/labour)
+## Test
+```bash
+# Docker CLI required (`docker` on PATH)
+mvn test
+```
+
+## Deploy readiness (minimal)
+- Configure `SPRING_DATASOURCE_*` and `SITEDIRECT_JWT_SECRET` via env
+- Probe `/actuator/health` (and `/actuator/health/liveness` / `readiness` when supported)
+- Backups: see `docs/SECURITY.md`

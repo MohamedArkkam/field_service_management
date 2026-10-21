@@ -1,0 +1,8 @@
+sitedirect:
+  jwt:
+    secret: test-secret-must-be-at-least-32-bytes-long!!
+    expiration-ms: 3600000
+  seed:
+    admin-email: admin@sitedirect.local
+    admin-password: Admin123!
+    admin-name: SiteDirect Admin
