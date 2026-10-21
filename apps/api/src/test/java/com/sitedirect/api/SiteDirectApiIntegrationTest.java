@@ -28,15 +28,24 @@ import org.springframework.test.context.DynamicPropertySource;
 class SiteDirectApiIntegrationTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
-    private static final DockerPostgresSupport POSTGRES = DockerPostgresSupport.start();
+    private static final boolean USE_EXTERNAL_DB = System.getenv("SPRING_DATASOURCE_URL") != null;
+    private static final DockerPostgresSupport POSTGRES = USE_EXTERNAL_DB ? null : DockerPostgresSupport.start();
 
     @AfterAll
     static void stopPostgres() {
-        POSTGRES.close();
+        if (POSTGRES != null) {
+            POSTGRES.close();
+        }
     }
 
     @DynamicPropertySource
     static void datasourceProps(DynamicPropertyRegistry registry) {
+        if (USE_EXTERNAL_DB) {
+            registry.add("spring.datasource.url", () -> System.getenv("SPRING_DATASOURCE_URL"));
+            registry.add("spring.datasource.username", () -> System.getenv("SPRING_DATASOURCE_USERNAME"));
+            registry.add("spring.datasource.password", () -> System.getenv("SPRING_DATASOURCE_PASSWORD"));
+            return;
+        }
         registry.add("spring.datasource.url", POSTGRES::jdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::username);
         registry.add("spring.datasource.password", POSTGRES::password);

@@ -13,7 +13,7 @@
 - Site Lead mobile field checks: deferred to M4
 
 ## Run API tests locally
-Requires Docker CLI (`docker` on PATH).
+Requires Docker CLI (`docker` on PATH) unless you point at an external Postgres via `SPRING_DATASOURCE_*`.
 
 ```bash
 cd apps/api
@@ -24,10 +24,13 @@ mvn verify
 
 ## CI
 GitHub Actions: `.github/workflows/ci.yml`  
-On push/PR to `master` (and push to `feature/**`): build API + run tests; build admin-web and client-web.
+On push/PR to `master` (and push to `feature/**`): build API + run tests against a Postgres service container; build admin-web and client-web.
 
 ```bash
-# Same commands CI runs
+# Approximate local equivalent of CI API job
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/sitedirect
+export SPRING_DATASOURCE_USERNAME=sitedirect
+export SPRING_DATASOURCE_PASSWORD=sitedirect
 cd apps/api && mvn -B verify
 cd apps/admin-web && npm ci && npm run build
 cd apps/client-web && npm ci && npm run build

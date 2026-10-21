@@ -25,23 +25,38 @@ public final class DockerPostgresSupport implements AutoCloseable {
 
     public static DockerPostgresSupport start() {
         requireDocker();
+        try {
+            exec("docker", "pull", "postgres:16-alpine");
+        } catch (Exception ignored) {
+            // image may already exist locally
+        }
         int port = freePort();
         String containerId = exec(
-                "docker",
-                "run",
-                "-d",
-                "--rm",
-                "-e",
-                "POSTGRES_DB=sitedirect",
-                "-e",
-                "POSTGRES_USER=sitedirect",
-                "-e",
-                "POSTGRES_PASSWORD=sitedirect",
-                "-p",
-                port + ":5432",
-                "postgres:16-alpine");
-        waitUntilReady(containerId, Duration.ofSeconds(60));
-        return new DockerPostgresSupport(containerId.trim(), port);
+                        "docker",
+                        "run",
+                        "-d",
+                        "--rm",
+                        "-e",
+                        "POSTGRES_DB=sitedirect",
+                        "-e",
+                        "POSTGRES_USER=sitedirect",
+                        "-e",
+                        "POSTGRES_PASSWORD=sitedirect",
+                        "-p",
+                        port + ":5432",
+                        "postgres:16-alpine")
+                .trim();
+        try {
+            waitUntilReady(containerId, Duration.ofSeconds(120));
+        } catch (RuntimeException ex) {
+            try {
+                String logs = exec("docker", "logs", containerId);
+                throw new IllegalStateException("Postgres container did not become ready. logs:\n" + logs, ex);
+            } catch (Exception logEx) {
+                throw ex;
+            }
+        }
+        return new DockerPostgresSupport(containerId, port);
     }
 
     public String jdbcUrl() {
