@@ -1,21 +1,25 @@
 # Security — SiteDirect
 
-**Status:** Stub — complete later
-
 ## Roles (locked)
 | Role | May write | May read |
 |------|-----------|----------|
 | Admin / Owner | Projects, assignments, internal config | All project ops data for company |
-| Site Lead | Checklist, proof, publish, bills, labour on assigned sites | Assigned sites |
-| Client | — | Approved progress only (own project) |
+| Site Lead | Progress, publish, bills, labour on assigned sites | Assigned sites |
+| Client | — | Approved progress only (own project via token) |
 
-## Controls (to flesh out)
-- Password hashing; JWT/session — decide later
-- Backend enforces permissions (never trust UI alone)
-- Secrets in environment variables, not Git
-- Publish audit (who approved/rated, when)
-- Least-privilege DB access; backups
+## Controls (current)
+- Passwords hashed with BCrypt; JWT Bearer auth
+- Backend enforces roles (`@PreAuthorize`); UI is not trusted
+- Secrets via environment variables (see `.env.example`); never commit `.env`
+- `/api/public/**` is progress-only — no bills, wages, attendance, priority/value
+- Client JWTs receive `403` on `/api/admin/**` and `/api/site/**` money/progress-write routes
+
+## Backups (ops)
+- PostgreSQL is the system of record — schedule regular dumps (e.g. `pg_dump`) of the `sitedirect` database
+- Store dumps encrypted off-host; test restore periodically
+- Prefer managed Postgres automated backups in production when available
+- Application secrets (`SITEDIRECT_JWT_SECRET`, DB password) rotate independently of DB dumps
 
 ## Threat notes
-- Client must not reach bills/wages via API guessing
-- Site Lead publish is trust gate — Admin spot-check process
+- Client must not reach bills/wages via API guessing (covered by integration tests)
+- Site Lead publish is the trust gate — Admin may spot-check process
