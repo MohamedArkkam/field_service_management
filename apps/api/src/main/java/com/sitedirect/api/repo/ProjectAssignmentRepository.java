@@ -15,4 +15,6 @@ public interface ProjectAssignmentRepository extends JpaRepository<ProjectAssign
     Optional<ProjectAssignment> findByProjectIdAndAssignmentRole(UUID projectId, Role assignmentRole);
 
     boolean existsByProjectIdAndUserId(UUID projectId, UUID userId);
+
+    List<ProjectAssignment> findByUserId(UUID userId);
 }

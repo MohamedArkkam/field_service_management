@@ -46,5 +46,8 @@ npm run dev -- --port 5174
 Copy `.env.example` if you need local env overrides (do not commit `.env`).
 
 ## Milestone status
-- **M0** — scaffold (this commit)  
-- **M1+** — auth, projects, publish gate, bills/labour, Site Lead Expo app  
+- **M0** — scaffold  
+- **M1** — auth/roles, projects, milestones, assignments, progress link token (merged)  
+- **M2** — publish gate (Site Lead approve + rate) + client progress view (`apps/client-web`)  
+- **M3+** — bills/labour, Site Lead Expo app  
+

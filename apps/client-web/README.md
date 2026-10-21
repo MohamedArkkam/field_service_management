@@ -2,14 +2,15 @@
 
 React + TypeScript (Vite) — **Client progress link** (read-only).
 
-## M0
-Shell only. Progress-only pages start when the publish gate exists (M2).
-
-**Never show:** company bills, wages, Admin priority/value.
+## M2
+- Route: `/p/{token}` → `GET /api/public/p/{token}`
+- Shows **published** progress only (title, note, optional photo URL, rating, date)
+- Never shows bills, wages, Admin priority/value, or drafts
 
 ```bash
+# API on :8080
 npm install
 npm run dev
 ```
 
-Prefer a different port from admin-web if both run locally (e.g. `npm run dev -- --port 5174`).
+Dev server defaults to **http://localhost:5174** (proxies `/api` → API).
