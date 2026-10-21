@@ -55,6 +55,7 @@ export default function ProjectsPage() {
           <p className="muted">Admin-only priority / value · progress link issued on create</p>
         </div>
         <div className="row">
+          <Link to="/liabilities">Liabilities</Link>
           <Link to="/users">Users</Link>
           <button
             className="secondary"
