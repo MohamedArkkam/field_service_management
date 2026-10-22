@@ -6,6 +6,9 @@
 3. Unpaid / Partial purchases stay visible to Admin until Paid (`SiteDirectApiIntegrationTest`)
 4. Role checks on API routes (same suite)
 5. Site Lead publish gate: draft hidden → publish → public visible
+6. Admin `GET /api/projects/{id}/progress` returns DRAFT + PUBLISHED (public still published-only)
+7. Unassigned Site Lead cannot create/publish progress (400 “Not assigned…”)
+8. Re-publishing an already PUBLISHED update fails with 400 “already published”
 
 ## Layers
 - **API / integration:** Spring Boot + Docker CLI PostgreSQL (`apps/api`)

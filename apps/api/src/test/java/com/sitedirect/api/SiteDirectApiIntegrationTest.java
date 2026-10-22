@@ -166,6 +166,109 @@ class SiteDirectApiIntegrationTest {
     }
 
     @Test
+    void adminProgressList_includesDraftAndPublished() {
+        JsonNode draft = postJson(
+                "/api/site/projects/" + projectId + "/progress",
+                leadToken,
+                Map.of("title", "Scaffold up", "note", "Internal only"),
+                HttpStatus.CREATED);
+        assertThat(draft.get("status").asText()).isEqualTo("DRAFT");
+
+        JsonNode toPublish = postJson(
+                "/api/site/projects/" + projectId + "/progress",
+                leadToken,
+                Map.of("title", "Slab cast", "note", "Will publish"),
+                HttpStatus.CREATED);
+        postJson(
+                "/api/site/projects/" + projectId + "/progress/" + toPublish.get("id").asText() + "/publish",
+                leadToken,
+                Map.of("rating", 5),
+                HttpStatus.OK);
+
+        JsonNode adminList = getJson("/api/projects/" + projectId + "/progress", adminToken, HttpStatus.OK);
+        assertThat(adminList.isArray()).isTrue();
+        assertThat(adminList).hasSizeGreaterThanOrEqualTo(2);
+
+        boolean sawDraft = false;
+        boolean sawPublished = false;
+        for (JsonNode item : adminList) {
+            String status = item.get("status").asText();
+            if ("DRAFT".equals(status) && "Scaffold up".equals(item.get("title").asText())) {
+                sawDraft = true;
+            }
+            if ("PUBLISHED".equals(status) && "Slab cast".equals(item.get("title").asText())) {
+                sawPublished = true;
+                assertThat(item.get("rating").asInt()).isEqualTo(5);
+            }
+        }
+        assertThat(sawDraft).as("Admin list should include DRAFT").isTrue();
+        assertThat(sawPublished).as("Admin list should include PUBLISHED").isTrue();
+
+        JsonNode publicView = getJson("/api/public/p/" + progressToken, null, HttpStatus.OK);
+        assertThat(publicView.get("updates")).hasSize(1);
+        assertThat(publicView.get("updates").get(0).get("title").asText()).isEqualTo("Slab cast");
+    }
+
+    @Test
+    void unassignedSiteLead_cannotCreateOrPublishProgress() {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        postJson(
+                "/api/users",
+                adminToken,
+                Map.of(
+                        "email", "other-lead-" + suffix + "@sitedirect.local",
+                        "password", "Lead1234!",
+                        "fullName", "Other Lead",
+                        "role", "SITE_LEAD"),
+                HttpStatus.OK);
+        String otherLeadToken = login("other-lead-" + suffix + "@sitedirect.local", "Lead1234!");
+
+        JsonNode createDenied = postJson(
+                "/api/site/projects/" + projectId + "/progress",
+                otherLeadToken,
+                Map.of("title", "Should fail"),
+                HttpStatus.BAD_REQUEST);
+        assertThat(createDenied.get("error").asText()).containsIgnoringCase("Not assigned");
+
+        JsonNode draft = postJson(
+                "/api/site/projects/" + projectId + "/progress",
+                leadToken,
+                Map.of("title", "Assigned draft"),
+                HttpStatus.CREATED);
+
+        JsonNode publishDenied = postJson(
+                "/api/site/projects/" + projectId + "/progress/" + draft.get("id").asText() + "/publish",
+                otherLeadToken,
+                Map.of("rating", 3),
+                HttpStatus.BAD_REQUEST);
+        assertThat(publishDenied.get("error").asText()).containsIgnoringCase("Not assigned");
+    }
+
+    @Test
+    void publishAlreadyPublished_failsWithBadRequest() {
+        JsonNode draft = postJson(
+                "/api/site/projects/" + projectId + "/progress",
+                leadToken,
+                Map.of("title", "One-shot publish"),
+                HttpStatus.CREATED);
+        String progressId = draft.get("id").asText();
+
+        postJson(
+                "/api/site/projects/" + projectId + "/progress/" + progressId + "/publish",
+                leadToken,
+                Map.of("rating", 4),
+                HttpStatus.OK);
+
+        // Current behaviour: IllegalArgumentException → 400 "Progress update already published"
+        JsonNode second = postJson(
+                "/api/site/projects/" + projectId + "/progress/" + progressId + "/publish",
+                leadToken,
+                Map.of("rating", 5),
+                HttpStatus.BAD_REQUEST);
+        assertThat(second.get("error").asText()).containsIgnoringCase("already published");
+    }
+
+    @Test
     void paymentStatusAndLiabilitiesSanity() {
         JsonNode purchase = postJson(
                 "/api/site/projects/" + projectId + "/purchases",
