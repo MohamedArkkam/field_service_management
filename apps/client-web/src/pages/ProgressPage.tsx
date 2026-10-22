@@ -47,6 +47,7 @@ export default function ProgressPage() {
   if (error) {
     return (
       <main className="page">
+        <p className="brand">SiteDirect</p>
         <p className="error">{error}</p>
         <p className="muted">Check the link from your Site Lead or Admin.</p>
       </main>
@@ -56,6 +57,7 @@ export default function ProgressPage() {
   if (!data) {
     return (
       <main className="page">
+        <p className="brand">SiteDirect</p>
         <p className="muted">Loading progress…</p>
       </main>
     )
@@ -63,15 +65,15 @@ export default function ProgressPage() {
 
   return (
     <main className="page">
+      <p className="brand">SiteDirect</p>
       <header className="hero">
-        <p className="eyebrow">SiteDirect progress</p>
         <h1>{data.projectName}</h1>
         {(data.clientDisplayName || data.location) && (
           <p className="sub">
             {[data.clientDisplayName, data.location].filter(Boolean).join(' · ')}
           </p>
         )}
-        <p className="muted">Approved updates only — no bills or internal costs.</p>
+        <p className="trust-line">Approved progress only — no bills or internal costs.</p>
       </header>
 
       {data.updates.length === 0 ? (
@@ -85,7 +87,10 @@ export default function ProgressPage() {
             <li key={item.id} className="update">
               <div className="update-head">
                 <h2>{item.title}</h2>
-                <Stars rating={item.rating} />
+                <div className="update-meta">
+                  <span className="chip chip--published">Published</span>
+                  <Stars rating={item.rating} />
+                </div>
               </div>
               {item.milestoneName && <p className="milestone">{item.milestoneName}</p>}
               {item.note && <p className="note">{item.note}</p>}

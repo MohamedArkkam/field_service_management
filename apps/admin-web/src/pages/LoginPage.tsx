@@ -34,8 +34,9 @@ export default function LoginPage() {
   return (
     <main className="shell">
       <div className="card" style={{ maxWidth: 420, margin: '3rem auto' }}>
-        <h1>SiteDirect Admin</h1>
-        <p className="muted">M1 login — Admin / Owner only</p>
+        <p className="brand-mark">SiteDirect</p>
+        <h1>Admin</h1>
+        <p className="muted">Admin / Owner only — office portfolio door</p>
         <form className="stack" onSubmit={onSubmit}>
           <label>
             Email

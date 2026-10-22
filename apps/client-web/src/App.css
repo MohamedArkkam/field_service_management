@@ -1,36 +1,43 @@
 .page {
-  width: min(720px, 100% - 2rem);
+  width: min(680px, 100% - 2.5rem);
   margin: 0 auto;
-  padding: 2.5rem 0 4rem;
+  padding: calc(var(--space) * 4) 0 calc(var(--space) * 6);
+}
+
+.brand {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  margin: 0 0 calc(var(--space) * 2);
 }
 
 .hero {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: calc(var(--space) * 3);
+  padding-bottom: calc(var(--space) * 2.5);
+  border-bottom: 1px solid var(--border);
 }
 
-.eyebrow {
-  margin: 0 0 0.5rem;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  font-weight: 600;
+.trust-line {
+  margin: calc(var(--space) * 1.5) 0 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 36em;
 }
 
 .hero h1 {
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
-  margin-bottom: 0.4rem;
+  font-size: clamp(1.75rem, 4.5vw, 2.35rem);
+  margin-bottom: 0.35rem;
 }
 
 .sub {
-  color: var(--muted);
-  margin-bottom: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+  font-size: 1.05rem;
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -40,15 +47,15 @@
 }
 
 .empty {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 3);
 }
 
 .empty h2 {
   font-size: 1.25rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
 .timeline {
@@ -56,32 +63,42 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 1rem;
+  gap: calc(var(--space) * 2);
 }
 
 .update {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 1.25rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 2) calc(var(--space) * 2.25);
 }
 
 .update-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  align-items: baseline;
-  margin-bottom: 0.35rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.update-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
 }
 
 .update h2 {
   font-size: 1.2rem;
+  flex: 1 1 12rem;
 }
 
 .stars {
-  color: #c2912a;
+  color: #9a6700;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  font-size: 0.95rem;
 }
 
 .stars-empty {
@@ -90,9 +107,9 @@
 
 .milestone {
   display: inline-block;
-  margin: 0.25rem 0 0.5rem;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+  margin: 0.15rem 0 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
   background: var(--accent-soft);
   color: var(--accent);
   font-size: 0.8rem;
@@ -101,7 +118,7 @@
 
 .note {
   margin: 0.5rem 0;
-  color: var(--ink);
+  color: var(--text);
 }
 
 .photo-link {
@@ -111,7 +128,7 @@
 }
 
 .date {
-  margin-top: 0.75rem;
-  font-size: 0.85rem;
-  color: var(--muted);
+  margin-top: calc(var(--space) * 1.5);
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }

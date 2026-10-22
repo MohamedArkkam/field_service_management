@@ -1,4 +1,4 @@
-/* Global resets live mainly in App.css for the M1 admin shell */
+/* Tokens and shell styles live in App.css (SiteDirect design system). */
 body {
   margin: 0;
 }
