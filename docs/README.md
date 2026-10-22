@@ -5,9 +5,11 @@ Course / product documentation for **SiteDirect**.
 ## This week
 - [`plan.md`](./plan.md) — main planning deliverable
 
+## Filled product docs
+- [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) — UI/UX foundations, doors, chips, screen intents (v1)
+
 ## Product docs (stubs — complete later)
 - `PRD.md`
-- `DESIGN_SYSTEM.md`
 - `ARCHITECTURE.md`
 - `DATABASE.md`
 - `SECURITY.md`
