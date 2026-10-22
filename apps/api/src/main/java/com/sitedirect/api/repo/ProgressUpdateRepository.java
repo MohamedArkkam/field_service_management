@@ -11,4 +11,6 @@ public interface ProgressUpdateRepository extends JpaRepository<ProgressUpdate, 
 
     List<ProgressUpdate> findByProjectIdAndStatusOrderByPublishedAtDesc(
             UUID projectId, ProgressStatus status);
+
+    List<ProgressUpdate> findByStatus(ProgressStatus status);
 }

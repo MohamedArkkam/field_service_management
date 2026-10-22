@@ -69,6 +69,10 @@ public final class ProjectDtos {
             List<AssignmentResponse> assignments) {
     }
 
+    /**
+     * Portfolio row. Completion is derived (not a stored %): milestones with ≥1 PUBLISHED
+     * progress vs total milestones, plus published-update counts for honest empty cases.
+     */
     public record ProjectSummaryResponse(
             UUID id,
             String name,
@@ -76,6 +80,10 @@ public final class ProjectDtos {
             Priority priority,
             BigDecimal projectValue,
             String progressPath,
-            Instant updatedAt) {
+            Instant updatedAt,
+            int milestoneCount,
+            int milestonesWithPublishedProof,
+            int publishedUpdateCount,
+            Instant lastPublishedAt) {
     }
 }

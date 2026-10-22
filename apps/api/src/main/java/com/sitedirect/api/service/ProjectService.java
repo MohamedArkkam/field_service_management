@@ -2,11 +2,14 @@ package com.sitedirect.api.service;
 
 import com.sitedirect.api.domain.Milestone;
 import com.sitedirect.api.domain.Priority;
+import com.sitedirect.api.domain.ProgressStatus;
+import com.sitedirect.api.domain.ProgressUpdate;
 import com.sitedirect.api.domain.Project;
 import com.sitedirect.api.domain.ProjectAssignment;
 import com.sitedirect.api.domain.Role;
 import com.sitedirect.api.domain.UserAccount;
 import com.sitedirect.api.repo.MilestoneRepository;
+import com.sitedirect.api.repo.ProgressUpdateRepository;
 import com.sitedirect.api.repo.ProjectAssignmentRepository;
 import com.sitedirect.api.repo.ProjectRepository;
 import com.sitedirect.api.repo.UserAccountRepository;
@@ -20,8 +23,13 @@ import com.sitedirect.api.web.dto.ProjectDtos.ProjectResponse;
 import com.sitedirect.api.web.dto.ProjectDtos.ProjectSummaryResponse;
 import com.sitedirect.api.web.dto.ProjectDtos.UpdateProjectRequest;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,23 +43,27 @@ public class ProjectService {
     private final MilestoneRepository milestoneRepository;
     private final ProjectAssignmentRepository assignmentRepository;
     private final UserAccountRepository userAccountRepository;
+    private final ProgressUpdateRepository progressUpdateRepository;
 
     public ProjectService(
             ProjectRepository projectRepository,
             MilestoneRepository milestoneRepository,
             ProjectAssignmentRepository assignmentRepository,
-            UserAccountRepository userAccountRepository) {
+            UserAccountRepository userAccountRepository,
+            ProgressUpdateRepository progressUpdateRepository) {
         this.projectRepository = projectRepository;
         this.milestoneRepository = milestoneRepository;
         this.assignmentRepository = assignmentRepository;
         this.userAccountRepository = userAccountRepository;
+        this.progressUpdateRepository = progressUpdateRepository;
     }
 
     @Transactional(readOnly = true)
     public List<ProjectSummaryResponse> listProjects() {
+        Map<UUID, CompletionSignal> signals = buildCompletionSignals();
         return projectRepository.findAll().stream()
                 .sorted((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()))
-                .map(this::toSummary)
+                .map(p -> toSummary(p, signals.getOrDefault(p.getId(), CompletionSignal.EMPTY)))
                 .toList();
     }
 
@@ -160,7 +172,7 @@ public class ProjectService {
         return projectRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Project not found"));
     }
 
-    private ProjectSummaryResponse toSummary(Project project) {
+    private ProjectSummaryResponse toSummary(Project project, CompletionSignal signal) {
         return new ProjectSummaryResponse(
                 project.getId(),
                 project.getName(),
@@ -168,7 +180,64 @@ public class ProjectService {
                 project.getPriority(),
                 project.getProjectValue(),
                 "/p/" + project.getProgressToken(),
-                project.getUpdatedAt());
+                project.getUpdatedAt(),
+                signal.milestoneCount(),
+                signal.milestonesWithPublishedProof(),
+                signal.publishedUpdateCount(),
+                signal.lastPublishedAt());
+    }
+
+    /**
+     * Honest portfolio signal: distinct milestones that have ≥1 PUBLISHED update,
+     * plus published-update count / last publish time (no stored % complete).
+     */
+    private Map<UUID, CompletionSignal> buildCompletionSignals() {
+        Map<UUID, Integer> milestoneCounts = new HashMap<>();
+        for (Milestone milestone : milestoneRepository.findAll()) {
+            milestoneCounts.merge(milestone.getProjectId(), 1, Integer::sum);
+        }
+
+        Map<UUID, Integer> publishedCounts = new HashMap<>();
+        Map<UUID, Instant> lastPublished = new HashMap<>();
+        Map<UUID, Set<UUID>> milestonesWithProof = new HashMap<>();
+
+        for (ProgressUpdate update : progressUpdateRepository.findByStatus(ProgressStatus.PUBLISHED)) {
+            UUID projectId = update.getProjectId();
+            publishedCounts.merge(projectId, 1, Integer::sum);
+            Instant publishedAt = update.getPublishedAt();
+            if (publishedAt != null) {
+                lastPublished.merge(projectId, publishedAt, (a, b) -> a.isAfter(b) ? a : b);
+            }
+            if (update.getMilestoneId() != null) {
+                milestonesWithProof.computeIfAbsent(projectId, id -> new HashSet<>()).add(update.getMilestoneId());
+            }
+        }
+
+        Set<UUID> projectIds = new HashSet<>();
+        projectIds.addAll(milestoneCounts.keySet());
+        projectIds.addAll(publishedCounts.keySet());
+
+        Map<UUID, CompletionSignal> signals = new HashMap<>();
+        for (UUID projectId : projectIds) {
+            int milestones = milestoneCounts.getOrDefault(projectId, 0);
+            int withProof = milestonesWithProof.getOrDefault(projectId, Set.of()).size();
+            signals.put(
+                    projectId,
+                    new CompletionSignal(
+                            milestones,
+                            withProof,
+                            publishedCounts.getOrDefault(projectId, 0),
+                            lastPublished.get(projectId)));
+        }
+        return signals;
+    }
+
+    private record CompletionSignal(
+            int milestoneCount,
+            int milestonesWithPublishedProof,
+            int publishedUpdateCount,
+            Instant lastPublishedAt) {
+        static final CompletionSignal EMPTY = new CompletionSignal(0, 0, 0, null);
     }
 
     private ProjectResponse toDetail(Project project) {

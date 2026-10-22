@@ -12,6 +12,59 @@ function priorityChipClass(priority: Priority) {
   return 'chip chip--priority-medium'
 }
 
+function formatShortDate(iso: string | null) {
+  if (!iso) return null
+  try {
+    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
+
+/** Honest signal from published proof — never invents a stored % complete. */
+function CompletionSignal({ project }: { project: ProjectSummary }) {
+  const last = formatShortDate(project.lastPublishedAt)
+
+  if (project.milestoneCount > 0) {
+    const ratio = project.milestonesWithPublishedProof / project.milestoneCount
+    const pct = Math.round(ratio * 100)
+    return (
+      <div className="completion">
+        <div
+          className="completion-bar"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          aria-label={`${project.milestonesWithPublishedProof} of ${project.milestoneCount} milestones with published proof`}
+        >
+          <span className="completion-bar-fill" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="completion-label">
+          {project.milestonesWithPublishedProof}/{project.milestoneCount} milestones with published
+          proof
+        </div>
+        <div className="muted">
+          {project.publishedUpdateCount} published
+          {last ? ` · last ${last}` : ''}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="completion">
+      <div className="completion-label">No milestones yet</div>
+      <div className="muted">
+        {project.publishedUpdateCount === 0
+          ? 'No published updates'
+          : `${project.publishedUpdateCount} published update${project.publishedUpdateCount === 1 ? '' : 's'}`}
+        {last ? ` · last ${last}` : ''}
+      </div>
+    </div>
+  )
+}
+
 export default function ProjectsPage() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectSummary[]>([])
@@ -71,7 +124,10 @@ export default function ProjectsPage() {
         <div>
           <p className="brand-mark">SiteDirect</p>
           <h1>Projects</h1>
-          <p className="muted">Portfolio scan · Admin-only priority / value · progress link on create</p>
+          <p className="muted">
+            Portfolio scan · completion from published proof (not a stored %) · open a site for
+            drafts + published
+          </p>
         </div>
         <div className="row">
           <Link to="/liabilities">Liabilities</Link>
@@ -133,7 +189,7 @@ export default function ProjectsPage() {
       <section className="card">
         <h2>All projects</h2>
         <p className="muted" style={{ marginBottom: '0.75rem' }}>
-          Sorted by priority (High first) so sites needing attention rise to the top.
+          Sorted by priority (High first). Completion = milestones with ≥1 published update.
         </p>
         {sortedProjects.length === 0 ? (
           <div className="empty-state">
@@ -146,8 +202,9 @@ export default function ProjectsPage() {
               <tr>
                 <th>Name</th>
                 <th>Priority</th>
+                <th>Site progress</th>
                 <th>Value</th>
-                <th>Progress path</th>
+                <th>Client link</th>
               </tr>
             </thead>
             <tbody>
@@ -159,6 +216,9 @@ export default function ProjectsPage() {
                   </td>
                   <td>
                     <span className={priorityChipClass(p.priority)}>{p.priority}</span>
+                  </td>
+                  <td>
+                    <CompletionSignal project={p} />
                   </td>
                   <td>{p.projectValue ?? '—'}</td>
                   <td>

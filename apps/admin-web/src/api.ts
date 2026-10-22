@@ -16,6 +16,28 @@ export type ProjectSummary = {
   projectValue: number | null
   progressPath: string
   updatedAt: string
+  /** Derived: total milestones (not a stored % complete). */
+  milestoneCount: number
+  /** Distinct milestones with ≥1 PUBLISHED progress update. */
+  milestonesWithPublishedProof: number
+  publishedUpdateCount: number
+  lastPublishedAt: string | null
+}
+
+export type ProgressStatus = 'DRAFT' | 'PUBLISHED'
+
+export type ProgressUpdate = {
+  id: string
+  projectId: string
+  milestoneId: string | null
+  milestoneName: string | null
+  title: string
+  note: string | null
+  photoUrl: string | null
+  status: ProgressStatus
+  rating: number | null
+  createdAt: string
+  publishedAt: string | null
 }
 
 export type Milestone = {
@@ -117,6 +139,8 @@ export const api = {
       `/api/projects/${id}/progress-link`,
     ),
   liabilities: () => request<LiabilityOverview>('/api/admin/liabilities'),
+  listProgress: (projectId: string) =>
+    request<ProgressUpdate[]>(`/api/projects/${projectId}/progress`),
 }
 
 export type PaymentStatus = 'UNPAID' | 'PARTIAL' | 'PAID'

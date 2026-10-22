@@ -1,8 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, setToken } from '../api'
-import type { Assignment, Priority, ProjectDetail, User } from '../api'
+import type { Assignment, Priority, ProgressUpdate, ProjectDetail, User } from '../api'
+
+type ProgressFilter = 'ALL' | 'DRAFT' | 'PUBLISHED'
+
+function formatDateTime(iso: string | null | undefined) {
+  if (!iso) return '—'
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
 
 export default function ProjectDetailPage() {
   const { id = '' } = useParams()
@@ -10,22 +24,31 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [siteLeads, setSiteLeads] = useState<User[]>([])
   const [clients, setClients] = useState<User[]>([])
+  const [progress, setProgress] = useState<ProgressUpdate[]>([])
+  const [progressFilter, setProgressFilter] = useState<ProgressFilter>('ALL')
   const [error, setError] = useState<string | null>(null)
   const [milestoneName, setMilestoneName] = useState('')
   const [phaseName, setPhaseName] = useState('')
   const [siteLeadId, setSiteLeadId] = useState('')
   const [clientId, setClientId] = useState('')
 
+  const filteredProgress = useMemo(() => {
+    if (progressFilter === 'ALL') return progress
+    return progress.filter((item) => item.status === progressFilter)
+  }, [progress, progressFilter])
+
   async function load() {
     try {
-      const [detail, leads, clientUsers] = await Promise.all([
+      const [detail, leads, clientUsers, updates] = await Promise.all([
         api.getProject(id),
         api.listUsers('SITE_LEAD'),
         api.listUsers('CLIENT'),
+        api.listProgress(id),
       ])
       setProject(detail)
       setSiteLeads(leads)
       setClients(clientUsers)
+      setProgress(updates)
       setSiteLeadId(leads[0]?.id ?? '')
       setClientId(clientUsers[0]?.id ?? '')
     } catch (err) {
@@ -102,11 +125,15 @@ export default function ProjectDetailPage() {
     )
   }
 
+  const draftCount = progress.filter((p) => p.status === 'DRAFT').length
+  const publishedCount = progress.filter((p) => p.status === 'PUBLISHED').length
+
   return (
     <main className="shell">
       <div className="topbar">
         <div>
           <Link to="/">← Projects</Link>
+          <p className="brand-mark">SiteDirect</p>
           <h1>{project.name}</h1>
         </div>
         <button
@@ -189,15 +216,99 @@ export default function ProjectDetailPage() {
       </section>
 
       <section className="card">
-        <h2>Progress link (issued)</h2>
-        <p className="muted">Client progress UI comes in M2. Token/path is ready now.</p>
+        <h2>Site Lead activity (internal)</h2>
+        <p className="muted">
+          Everything the Site Lead logged — drafts and published. Client only sees PUBLISHED via the
+          progress link.
+        </p>
+        <div className="filter-tabs" role="tablist" aria-label="Progress filter">
+          <button
+            type="button"
+            className={progressFilter === 'ALL' ? 'filter-tab is-active' : 'filter-tab'}
+            onClick={() => setProgressFilter('ALL')}
+          >
+            All ({progress.length})
+          </button>
+          <button
+            type="button"
+            className={progressFilter === 'DRAFT' ? 'filter-tab is-active' : 'filter-tab'}
+            onClick={() => setProgressFilter('DRAFT')}
+          >
+            Drafts ({draftCount})
+          </button>
+          <button
+            type="button"
+            className={progressFilter === 'PUBLISHED' ? 'filter-tab is-active' : 'filter-tab'}
+            onClick={() => setProgressFilter('PUBLISHED')}
+          >
+            Published ({publishedCount})
+          </button>
+        </div>
+
+        {filteredProgress.length === 0 ? (
+          <div className="empty-state">
+            <h3>
+              {progressFilter === 'ALL'
+                ? 'No progress logged yet'
+                : progressFilter === 'DRAFT'
+                  ? 'No drafts'
+                  : 'No published updates'}
+            </h3>
+            <p className="muted">
+              When the Site Lead adds proof on mobile (or via API), it appears here for Admin.
+            </p>
+          </div>
+        ) : (
+          <ul className="activity-list">
+            {filteredProgress.map((item) => (
+              <li key={item.id} className="activity-item">
+                <div className="activity-head">
+                  <h3>{item.title}</h3>
+                  <span
+                    className={
+                      item.status === 'PUBLISHED' ? 'chip chip--published' : 'chip chip--draft'
+                    }
+                  >
+                    {item.status === 'PUBLISHED' ? 'Published' : 'Draft'}
+                  </span>
+                </div>
+                {item.milestoneName && (
+                  <p className="activity-milestone">Milestone: {item.milestoneName}</p>
+                )}
+                {item.note && <p className="activity-note">{item.note}</p>}
+                {item.photoUrl && (
+                  <p>
+                    <a href={item.photoUrl} target="_blank" rel="noreferrer">
+                      View photo
+                    </a>
+                  </p>
+                )}
+                <div className="activity-meta muted">
+                  {item.status === 'PUBLISHED' && item.rating != null && (
+                    <span>Rating {item.rating}/5 · </span>
+                  )}
+                  <span>Created {formatDateTime(item.createdAt)}</span>
+                  {item.publishedAt && <span> · Published {formatDateTime(item.publishedAt)}</span>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="card">
+        <h2>Progress link (client)</h2>
+        <p className="muted">
+          Client only sees PUBLISHED via the progress link. Drafts stay internal (this page + Site
+          Lead app).
+        </p>
         <p>
           Path: <code>{project.progressPath}</code>
         </p>
         <p>
           Token: <code>{project.progressToken}</code>
         </p>
-        <p className="muted">Hint for client-web later: http://localhost:5174{project.progressPath}</p>
+        <p className="muted">Client web: http://localhost:5174{project.progressPath}</p>
       </section>
 
       <section className="card">
