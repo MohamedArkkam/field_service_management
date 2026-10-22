@@ -50,3 +50,10 @@ sitedirect:
     admin-email: ${SITEDIRECT_ADMIN_EMAIL:admin@sitedirect.local}
     admin-password: ${SITEDIRECT_ADMIN_PASSWORD:Admin123!}
     admin-name: ${SITEDIRECT_ADMIN_NAME:SiteDirect Admin}
+    demo-enabled: ${SITEDIRECT_DEMO_SEED:true}
+    site-lead-email: ${SITEDIRECT_SITE_LEAD_EMAIL:sitelead@sitedirect.local}
+    site-lead-password: ${SITEDIRECT_SITE_LEAD_PASSWORD:Lead1234!}
+    site-lead-name: ${SITEDIRECT_SITE_LEAD_NAME:Demo Site Lead}
+    demo-project-name: ${SITEDIRECT_DEMO_PROJECT_NAME:Demo Site Project}
+    demo-project-location: ${SITEDIRECT_DEMO_PROJECT_LOCATION:Demo City}
+    demo-client-display-name: ${SITEDIRECT_DEMO_CLIENT_NAME:Demo Client}

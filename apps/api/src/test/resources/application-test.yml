@@ -6,3 +6,10 @@ sitedirect:
     admin-email: admin@sitedirect.local
     admin-password: Admin123!
     admin-name: SiteDirect Admin
+    demo-enabled: false
+    site-lead-email: sitelead@sitedirect.local
+    site-lead-password: Lead1234!
+    site-lead-name: Demo Site Lead
+    demo-project-name: Demo Site Project
+    demo-project-location: Demo City
+    demo-client-display-name: Demo Client

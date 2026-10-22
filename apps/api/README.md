@@ -14,7 +14,16 @@ Java 21 · Spring Boot · PostgreSQL · Flyway · JWT security
 - Site purchases + attendance/labour (internal)
 - **Hard rule:** `/api/public/**` and Client never see bills/wages/attendance
 
-Seeded admin: `admin@sitedirect.local` / `Admin123!`
+## Demo accounts (seeded on startup)
+
+Idempotent — safe to restart; skips rows that already exist. Disable with `SITEDIRECT_DEMO_SEED=false` (off in tests).
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@sitedirect.local` | `Admin123!` |
+| Site Lead | `sitelead@sitedirect.local` | `Lead1234!` |
+
+Also seeds **Demo Site Project** and assigns the Site Lead to it (for Expo Go / Swagger demos).
 
 ## Run
 ```bash
