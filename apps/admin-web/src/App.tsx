@@ -4,6 +4,8 @@ import './App.css'
 import { getToken } from './api'
 import LiabilitiesPage from './pages/LiabilitiesPage'
 import LoginPage from './pages/LoginPage'
+import NewProjectPage from './pages/NewProjectPage'
+import NewUserPage from './pages/NewUserPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import ProjectsPage from './pages/ProjectsPage'
 import UsersPage from './pages/UsersPage'
@@ -26,6 +28,14 @@ function App() {
         }
       />
       <Route
+        path="/projects/new"
+        element={
+          <RequireAuth>
+            <NewProjectPage />
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/projects/:id"
         element={
           <RequireAuth>
@@ -38,6 +48,14 @@ function App() {
         element={
           <RequireAuth>
             <UsersPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/new"
+        element={
+          <RequireAuth>
+            <NewUserPage />
           </RequireAuth>
         }
       />

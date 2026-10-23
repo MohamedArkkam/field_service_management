@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react'
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -19,15 +18,12 @@ import { styles } from '../ui/styles'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Purchases'>
 
-export function PurchasesScreen({ route }: Props) {
-  const { projectId } = route.params
+export function PurchasesScreen({ route, navigation }: Props) {
+  const { projectId, projectName } = route.params
   const { token } = useAuth()
   const [items, setItems] = useState<Purchase[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [description, setDescription] = useState('')
-  const [vendorName, setVendorName] = useState('')
-  const [amount, setAmount] = useState('')
   const [paidEdits, setPaidEdits] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
 
@@ -55,32 +51,6 @@ export function PurchasesScreen({ route }: Props) {
       void load()
     }, [load]),
   )
-
-  async function createPurchase() {
-    if (!token) return
-    const value = Number(amount)
-    if (!description.trim() || !(value > 0)) {
-      setError('Description and amount (> 0) are required')
-      return
-    }
-    setBusy(true)
-    setError(null)
-    try {
-      await api.createPurchase(token, projectId, {
-        description: description.trim(),
-        vendorName: vendorName.trim() || undefined,
-        amount: value,
-      })
-      setDescription('')
-      setVendorName('')
-      setAmount('')
-      await load()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Create failed')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   async function savePayment(item: Purchase) {
     if (!token) return
@@ -113,27 +83,12 @@ export function PurchasesScreen({ route }: Props) {
             <Text style={styles.title}>Purchases</Text>
             <Text style={styles.subtitle}>Status from amount paid: Unpaid / Partial / Paid</Text>
             <ErrorBox message={error} onRetry={() => void load()} />
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>New purchase</Text>
-              <Text style={styles.label}>Description</Text>
-              <TextInput style={styles.input} value={description} onChangeText={setDescription} />
-              <Text style={styles.label}>Vendor (optional)</Text>
-              <TextInput style={styles.input} value={vendorName} onChangeText={setVendorName} />
-              <Text style={styles.label}>Amount</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="decimal-pad"
-                value={amount}
-                onChangeText={setAmount}
-              />
-              <Pressable style={styles.button} onPress={() => void createPurchase()} disabled={busy}>
-                {busy ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.buttonText}>Save purchase</Text>
-                )}
-              </Pressable>
-            </View>
+            <Pressable
+              style={styles.button}
+              onPress={() => navigation.navigate('NewPurchase', { projectId, projectName })}
+            >
+              <Text style={styles.buttonText}>New purchase</Text>
+            </Pressable>
           </View>
         }
         ListEmptyComponent={!loading ? <Text style={styles.muted}>No purchases yet.</Text> : undefined}

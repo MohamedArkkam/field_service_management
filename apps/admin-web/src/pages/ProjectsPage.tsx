@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, setToken } from '../api'
 import type { Priority, ProjectSummary } from '../api'
@@ -69,11 +68,6 @@ export default function ProjectsPage() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [location, setLocation] = useState('')
-  const [priority, setPriority] = useState<Priority>('MEDIUM')
-  const [projectValue, setProjectValue] = useState('')
-  const [strategicNote, setStrategicNote] = useState('')
 
   const sortedProjects = useMemo(
     () =>
@@ -85,38 +79,12 @@ export default function ProjectsPage() {
     [projects],
   )
 
-  async function load() {
-    try {
-      setProjects(await api.listProjects())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load projects')
-    }
-  }
-
   useEffect(() => {
-    void load()
+    api
+      .listProjects()
+      .then(setProjects)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load projects'))
   }, [])
-
-  async function onCreate(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    try {
-      const created = await api.createProject({
-        name,
-        location: location || null,
-        priority,
-        projectValue: projectValue ? Number(projectValue) : null,
-        strategicNote: strategicNote || null,
-      })
-      setName('')
-      setLocation('')
-      setProjectValue('')
-      setStrategicNote('')
-      navigate(`/projects/${created.id}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Create failed')
-    }
-  }
 
   return (
     <main className="shell">
@@ -125,11 +93,13 @@ export default function ProjectsPage() {
           <p className="brand-mark">SiteDirect</p>
           <h1>Projects</h1>
           <p className="muted">
-            Portfolio scan · completion from published proof (not a stored %) · open a site for
-            drafts + published
+            Portfolio scan · completion from published proof · open a site for Site Lead activity
           </p>
         </div>
         <div className="row">
+          <Link to="/projects/new" className="button-link">
+            New project
+          </Link>
           <Link to="/liabilities">Liabilities</Link>
           <Link to="/users">Users</Link>
           <button
@@ -145,45 +115,6 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      <section className="card">
-        <h2>Create project</h2>
-        <form className="stack" onSubmit={onCreate}>
-          <div className="grid two">
-            <label>
-              Name
-              <input value={name} onChange={(e) => setName(e.target.value)} required />
-            </label>
-            <label>
-              Location
-              <input value={location} onChange={(e) => setLocation(e.target.value)} />
-            </label>
-            <label>
-              Priority (Admin-only)
-              <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)}>
-                <option value="HIGH">HIGH</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="LOW">LOW</option>
-              </select>
-            </label>
-            <label>
-              Project value (Admin-only)
-              <input
-                value={projectValue}
-                onChange={(e) => setProjectValue(e.target.value)}
-                type="number"
-                min="0"
-                step="0.01"
-              />
-            </label>
-          </div>
-          <label>
-            Strategic note (Admin-only)
-            <textarea value={strategicNote} onChange={(e) => setStrategicNote(e.target.value)} rows={2} />
-          </label>
-          <button type="submit">Create project</button>
-        </form>
-      </section>
-
       {error && <p className="error">{error}</p>}
 
       <section className="card">
@@ -194,7 +125,10 @@ export default function ProjectsPage() {
         {sortedProjects.length === 0 ? (
           <div className="empty-state">
             <h3>No projects yet</h3>
-            <p className="muted">Create a project above, then assign a Site Lead and share the progress link.</p>
+            <p className="muted">
+              <Link to="/projects/new">Create a project</Link>, then assign a Site Lead and share the
+              progress link.
+            </p>
           </div>
         ) : (
           <table>

@@ -5,6 +5,9 @@ import { StatusBar } from 'expo-status-bar'
 import { AuthProvider, useAuth } from './src/auth/AuthContext'
 import type { RootStackParamList } from './src/navigation/types'
 import { LoginScreen } from './src/screens/LoginScreen'
+import { NewProgressScreen } from './src/screens/NewProgressScreen'
+import { NewPurchaseScreen } from './src/screens/NewPurchaseScreen'
+import { NewWorkerScreen } from './src/screens/NewWorkerScreen'
 import { ProgressScreen } from './src/screens/ProgressScreen'
 import { ProjectHomeScreen } from './src/screens/ProjectHomeScreen'
 import { ProjectsScreen } from './src/screens/ProjectsScreen'
@@ -44,8 +47,11 @@ function RootNavigator() {
             options={({ route }) => ({ title: route.params.projectName })}
           />
           <Stack.Screen name="Progress" component={ProgressScreen} options={{ title: 'Progress' }} />
+          <Stack.Screen name="NewProgress" component={NewProgressScreen} options={{ title: 'New draft' }} />
           <Stack.Screen name="Purchases" component={PurchasesScreen} options={{ title: 'Purchases' }} />
+          <Stack.Screen name="NewPurchase" component={NewPurchaseScreen} options={{ title: 'New purchase' }} />
           <Stack.Screen name="Workers" component={WorkersScreen} options={{ title: 'Workers' }} />
+          <Stack.Screen name="NewWorker" component={NewWorkerScreen} options={{ title: 'Add worker' }} />
         </>
       )}
     </Stack.Navigator>

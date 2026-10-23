@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import SideDrawer from '../components/SideDrawer'
 import { api, setToken } from '../api'
 import type { Assignment, Priority, ProgressUpdate, ProjectDetail, User } from '../api'
 
 type ProgressFilter = 'ALL' | 'DRAFT' | 'PUBLISHED'
+type DrawerKind = 'milestone' | 'assign' | null
 
 function formatDateTime(iso: string | null | undefined) {
   if (!iso) return '—'
@@ -27,15 +29,18 @@ export default function ProjectDetailPage() {
   const [progress, setProgress] = useState<ProgressUpdate[]>([])
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('ALL')
   const [error, setError] = useState<string | null>(null)
+  const [drawer, setDrawer] = useState<DrawerKind>(null)
   const [milestoneName, setMilestoneName] = useState('')
   const [phaseName, setPhaseName] = useState('')
-  const [siteLeadId, setSiteLeadId] = useState('')
-  const [clientId, setClientId] = useState('')
+  const [assignRole, setAssignRole] = useState<'SITE_LEAD' | 'CLIENT'>('SITE_LEAD')
+  const [assignUserId, setAssignUserId] = useState('')
 
   const filteredProgress = useMemo(() => {
     if (progressFilter === 'ALL') return progress
     return progress.filter((item) => item.status === progressFilter)
   }, [progress, progressFilter])
+
+  const assignOptions = assignRole === 'SITE_LEAD' ? siteLeads : clients
 
   async function load() {
     try {
@@ -49,8 +54,7 @@ export default function ProjectDetailPage() {
       setSiteLeads(leads)
       setClients(clientUsers)
       setProgress(updates)
-      setSiteLeadId(leads[0]?.id ?? '')
-      setClientId(clientUsers[0]?.id ?? '')
+      setAssignUserId((leads[0] ?? clientUsers[0])?.id ?? '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load project')
     }
@@ -86,20 +90,23 @@ export default function ProjectDetailPage() {
       await api.addMilestone(id, { name: milestoneName, phaseName: phaseName || undefined })
       setMilestoneName('')
       setPhaseName('')
+      setDrawer(null)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Milestone failed')
     }
   }
 
-  async function assign(role: 'SITE_LEAD' | 'CLIENT', userId: string) {
-    if (!userId) {
-      setError(`Create a ${role} user first`)
+  async function assign(e: FormEvent) {
+    e.preventDefault()
+    if (!assignUserId) {
+      setError(`Create a ${assignRole} user first`)
       return
     }
     setError(null)
     try {
-      await api.assign(id, { userId, assignmentRole: role })
+      await api.assign(id, { userId: assignUserId, assignmentRole: assignRole })
+      setDrawer(null)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Assign failed')
@@ -114,6 +121,13 @@ export default function ProjectDetailPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Remove failed')
     }
+  }
+
+  function openAssign(role: 'SITE_LEAD' | 'CLIENT') {
+    setAssignRole(role)
+    const list = role === 'SITE_LEAD' ? siteLeads : clients
+    setAssignUserId(list[0]?.id ?? '')
+    setDrawer('assign')
   }
 
   if (!project) {
@@ -312,7 +326,12 @@ export default function ProjectDetailPage() {
       </section>
 
       <section className="card">
-        <h2>Milestones</h2>
+        <div className="section-head">
+          <h2>Milestones</h2>
+          <button type="button" onClick={() => setDrawer('milestone')}>
+            Add milestone
+          </button>
+        </div>
         <ul>
           {project.milestones.map((m) => (
             <li key={m.id}>
@@ -322,23 +341,20 @@ export default function ProjectDetailPage() {
           ))}
           {project.milestones.length === 0 && <li className="muted">No milestones yet.</li>}
         </ul>
-        <form className="stack" onSubmit={addMilestone}>
-          <div className="grid two">
-            <label>
-              Phase (optional)
-              <input value={phaseName} onChange={(e) => setPhaseName(e.target.value)} />
-            </label>
-            <label>
-              Milestone name
-              <input value={milestoneName} onChange={(e) => setMilestoneName(e.target.value)} required />
-            </label>
-          </div>
-          <button type="submit">Add milestone</button>
-        </form>
       </section>
 
       <section className="card">
-        <h2>Assignments</h2>
+        <div className="section-head">
+          <h2>Assignments</h2>
+          <div className="row">
+            <button type="button" onClick={() => openAssign('SITE_LEAD')}>
+              Assign Site Lead
+            </button>
+            <button type="button" className="secondary" onClick={() => openAssign('CLIENT')}>
+              Assign Client
+            </button>
+          </div>
+        </div>
         <table>
           <thead>
             <tr>
@@ -362,42 +378,70 @@ export default function ProjectDetailPage() {
                 </td>
               </tr>
             ))}
+            {project.assignments.length === 0 && (
+              <tr>
+                <td colSpan={3} className="muted">
+                  No assignments yet.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-        <div className="grid two" style={{ marginTop: '1rem' }}>
-          <div className="stack">
-            <label>
-              Site Lead
-              <select value={siteLeadId} onChange={(e) => setSiteLeadId(e.target.value)}>
-                {siteLeads.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.fullName} ({u.email})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="button" onClick={() => void assign('SITE_LEAD', siteLeadId)}>
-              Assign Site Lead
-            </button>
-          </div>
-          <div className="stack">
-            <label>
-              Client
-              <select value={clientId} onChange={(e) => setClientId(e.target.value)}>
-                {clients.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.fullName} ({u.email})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="button" onClick={() => void assign('CLIENT', clientId)}>
-              Assign Client
-            </button>
-          </div>
-        </div>
-        <p className="muted">Create users on the Users page if the lists are empty.</p>
+        <p className="muted" style={{ marginTop: '0.75rem' }}>
+          Need accounts? <Link to="/users/new">Create user</Link>
+        </p>
       </section>
+
+      <SideDrawer
+        open={drawer === 'milestone'}
+        title="Add milestone"
+        onClose={() => setDrawer(null)}
+      >
+        <form className="stack" onSubmit={addMilestone}>
+          <label>
+            Phase (optional)
+            <input value={phaseName} onChange={(e) => setPhaseName(e.target.value)} />
+          </label>
+          <label>
+            Milestone name
+            <input
+              value={milestoneName}
+              onChange={(e) => setMilestoneName(e.target.value)}
+              required
+              autoFocus
+            />
+          </label>
+          <button type="submit">Save milestone</button>
+        </form>
+      </SideDrawer>
+
+      <SideDrawer
+        open={drawer === 'assign'}
+        title={assignRole === 'SITE_LEAD' ? 'Assign Site Lead' : 'Assign Client'}
+        onClose={() => setDrawer(null)}
+      >
+        <form className="stack" onSubmit={assign}>
+          {assignOptions.length === 0 ? (
+            <p className="muted">
+              No {assignRole} users yet. <Link to="/users/new">Create user</Link>
+            </p>
+          ) : (
+            <label>
+              User
+              <select value={assignUserId} onChange={(e) => setAssignUserId(e.target.value)}>
+                {assignOptions.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.fullName} ({u.email})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <button type="submit" disabled={assignOptions.length === 0}>
+            Assign
+          </button>
+        </form>
+      </SideDrawer>
     </main>
   )
 }

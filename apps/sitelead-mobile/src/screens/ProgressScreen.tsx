@@ -5,7 +5,6 @@ import {
   Pressable,
   RefreshControl,
   Text,
-  TextInput,
   View,
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
@@ -19,15 +18,12 @@ import { styles } from '../ui/styles'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Progress'>
 
-export function ProgressScreen({ route }: Props) {
-  const { projectId } = route.params
+export function ProgressScreen({ route, navigation }: Props) {
+  const { projectId, projectName } = route.params
   const { token } = useAuth()
   const [items, setItems] = useState<ProgressUpdate[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [title, setTitle] = useState('')
-  const [note, setNote] = useState('')
-  const [photoUrl, setPhotoUrl] = useState('')
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
@@ -48,30 +44,6 @@ export function ProgressScreen({ route }: Props) {
       void load()
     }, [load]),
   )
-
-  async function createDraft() {
-    if (!token || !title.trim()) {
-      setError('Title is required')
-      return
-    }
-    setBusy(true)
-    setError(null)
-    try {
-      await api.createProgress(token, projectId, {
-        title: title.trim(),
-        note: note.trim() || undefined,
-        photoUrl: photoUrl.trim() || undefined,
-      })
-      setTitle('')
-      setNote('')
-      setPhotoUrl('')
-      await load()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Create failed')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   async function publish(item: ProgressUpdate, rating: number) {
     if (!token) return
@@ -99,33 +71,13 @@ export function ProgressScreen({ route }: Props) {
             <Text style={styles.title}>Progress</Text>
             <Text style={styles.subtitle}>Drafts stay internal until you publish + rate</Text>
             <ErrorBox message={error} onRetry={() => void load()} />
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>New draft</Text>
-              <Text style={styles.label}>Title</Text>
-              <TextInput style={styles.input} value={title} onChangeText={setTitle} />
-              <Text style={styles.label}>Note</Text>
-              <TextInput
-                style={[styles.input, { minHeight: 64, textAlignVertical: 'top' }]}
-                multiline
-                value={note}
-                onChangeText={setNote}
-              />
-              <Text style={styles.label}>Photo URL (optional)</Text>
-              <TextInput
-                style={styles.input}
-                autoCapitalize="none"
-                value={photoUrl}
-                onChangeText={setPhotoUrl}
-                placeholder="https://…"
-              />
-              <Pressable style={styles.button} onPress={() => void createDraft()} disabled={busy}>
-                {busy ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.buttonText}>Save draft</Text>
-                )}
-              </Pressable>
-            </View>
+            <Pressable
+              style={styles.button}
+              onPress={() => navigation.navigate('NewProgress', { projectId, projectName })}
+            >
+              <Text style={styles.buttonText}>New draft</Text>
+            </Pressable>
+            {busy ? <ActivityIndicator color="#1f6b4a" /> : null}
           </View>
         }
         ListEmptyComponent={
