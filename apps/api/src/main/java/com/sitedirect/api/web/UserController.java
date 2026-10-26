@@ -6,8 +6,10 @@ import com.sitedirect.api.web.dto.AuthDtos.CreateUserRequest;
 import com.sitedirect.api.web.dto.AuthDtos.UserResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,5 +38,15 @@ public class UserController {
             throw new IllegalArgumentException("role filter must be SITE_LEAD or CLIENT");
         }
         return authService.listUsersByRole(role);
+    }
+
+    @PostMapping("/{id}/deactivate")
+    public UserResponse deactivate(@PathVariable UUID id) {
+        return authService.deactivateUser(id);
+    }
+
+    @PostMapping("/{id}/reactivate")
+    public UserResponse reactivate(@PathVariable UUID id) {
+        return authService.reactivateUser(id);
     }
 }

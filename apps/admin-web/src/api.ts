@@ -6,6 +6,7 @@ export type User = {
   email: string
   fullName: string
   role: Role
+  active: boolean
 }
 
 export type ProjectSummary = {
@@ -15,6 +16,7 @@ export type ProjectSummary = {
   priority: Priority
   projectValue: number | null
   progressPath: string
+  archived: boolean
   updatedAt: string
   /** Derived: total milestones (not a stored % complete). */
   milestoneCount: number
@@ -68,6 +70,7 @@ export type ProjectDetail = {
   strategicNote: string | null
   progressToken: string
   progressPath: string
+  archived: boolean
   createdAt: string
   updatedAt: string
   milestones: Milestone[]
@@ -133,7 +136,19 @@ export const api = {
       body: JSON.stringify(body),
     }),
   removeAssignment: (projectId: string, assignmentId: string) =>
-    request<void>(`/api/projects/${projectId}/assignments/${assignmentId}`, { method: 'DELETE' }),
+    request<ProjectDetail>(`/api/projects/${projectId}/assignments/${assignmentId}`, {
+      method: 'DELETE',
+    }),
+  archiveProject: (id: string) =>
+    request<ProjectDetail>(`/api/projects/${id}/archive`, { method: 'POST' }),
+  unarchiveProject: (id: string) =>
+    request<ProjectDetail>(`/api/projects/${id}/unarchive`, { method: 'POST' }),
+  deactivateUser: (id: string) =>
+    request<User>(`/api/users/${id}/deactivate`, { method: 'POST' }),
+  reactivateUser: (id: string) =>
+    request<User>(`/api/users/${id}/reactivate`, { method: 'POST' }),
+  deleteDraftProgress: (projectId: string, progressId: string) =>
+    request<void>(`/api/projects/${projectId}/progress/${progressId}`, { method: 'DELETE' }),
   progressLink: (id: string) =>
     request<{ token: string; path: string; absoluteHint: string }>(
       `/api/projects/${id}/progress-link`,

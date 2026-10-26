@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, setToken } from '../api'
+import AdminChrome from '../components/AdminChrome'
+import PageHeader from '../components/PageHeader'
+import { api } from '../api'
 import type { Priority } from '../api'
 
 export default function NewProjectPage() {
@@ -16,6 +18,7 @@ export default function NewProjectPage() {
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
+    if (saving) return
     setError(null)
     setSaving(true)
     try {
@@ -36,24 +39,13 @@ export default function NewProjectPage() {
 
   return (
     <main className="shell">
-      <div className="topbar">
-        <div>
-          <Link to="/">← Projects</Link>
-          <p className="brand-mark">SiteDirect</p>
-          <h1>New project</h1>
-          <p className="muted">One job: set up a site. Priority and value stay Admin-only.</p>
-        </div>
-        <button
-          className="secondary"
-          type="button"
-          onClick={() => {
-            setToken(null)
-            navigate('/login')
-          }}
-        >
-          Sign out
-        </button>
-      </div>
+      <AdminChrome />
+      <PageHeader
+        backTo="/"
+        backLabel="← Projects"
+        title="New project"
+        subtitle="One job: set up a site. Priority and value stay Admin-only."
+      />
 
       <section className="card">
         <form className="stack" onSubmit={onCreate}>
@@ -91,8 +83,15 @@ export default function NewProjectPage() {
           </label>
           {error && <p className="error">{error}</p>}
           <div className="row">
-            <button type="submit" disabled={saving}>
-              {saving ? 'Creating…' : 'Create project'}
+            <button type="submit" className="btn" disabled={saving}>
+              {saving ? (
+                <>
+                  <span className="btn-spinner" aria-hidden />
+                  Creating…
+                </>
+              ) : (
+                'Create project'
+              )}
             </button>
             <Link to="/" className="button-link secondary">
               Cancel

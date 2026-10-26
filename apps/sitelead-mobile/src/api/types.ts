@@ -8,6 +8,7 @@ export type User = {
   email: string
   fullName: string
   role: Role
+  active: boolean
 }
 
 export type SiteProject = {

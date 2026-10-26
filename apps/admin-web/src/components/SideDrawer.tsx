@@ -17,7 +17,7 @@ export default function SideDrawer({ open, title, onClose, children }: Props) {
       <aside className="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
         <div className="drawer-header">
           <h2 id="drawer-title">{title}</h2>
-          <button type="button" className="secondary" onClick={onClose}>
+          <button type="button" className="btn btn--secondary" onClick={onClose}>
             Close
           </button>
         </div>

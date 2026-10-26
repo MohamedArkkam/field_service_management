@@ -30,7 +30,10 @@ public class SiteAccessService {
         if (principal.getRole() != Role.SITE_LEAD) {
             throw new IllegalArgumentException("Site Lead role required");
         }
-        requireProject(projectId);
+        Project project = requireProject(projectId);
+        if (project.isArchived()) {
+            throw new IllegalArgumentException("Project is archived");
+        }
         ProjectAssignment assignment = assignmentRepository
                 .findByProjectIdAndUserId(projectId, principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Not assigned to this project"));

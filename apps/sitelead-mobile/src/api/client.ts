@@ -82,6 +82,12 @@ export const api = {
       body: JSON.stringify({ rating }),
     }),
 
+  deleteDraftProgress: (token: string, projectId: string, progressId: string) =>
+    request<void>(`/api/site/projects/${projectId}/progress/${progressId}`, {
+      method: 'DELETE',
+      token,
+    }),
+
   listPurchases: (token: string, projectId: string) =>
     request<Purchase[]>(`/api/site/projects/${projectId}/purchases`, { token }),
 

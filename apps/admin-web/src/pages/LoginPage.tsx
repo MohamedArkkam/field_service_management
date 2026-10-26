@@ -14,6 +14,7 @@ export default function LoginPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (loading) return
     setLoading(true)
     setError(null)
     try {
@@ -52,8 +53,15 @@ export default function LoginPage() {
             />
           </label>
           {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
+          <button type="submit" className="btn" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="btn-spinner" aria-hidden />
+                Signing in…
+              </>
+            ) : (
+              'Sign in'
+            )}
           </button>
         </form>
       </div>
