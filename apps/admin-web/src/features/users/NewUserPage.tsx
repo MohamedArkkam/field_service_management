@@ -1,19 +1,31 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AdminChrome from '../../shared/components/AdminChrome'
 import PageHeader from '../../shared/components/PageHeader'
+import { useRegisterUnsaved } from '../../shared/unsaved/UnsavedChangesContext'
 import { usersApi as api } from './api'
 import type { Role } from '../../shared/types'
+
+const DEFAULT_PASSWORD = 'Password123!'
 
 export default function NewUserPage() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('Password123!')
+  const [password, setPassword] = useState(DEFAULT_PASSWORD)
   const [fullName, setFullName] = useState('')
   const [role, setRole] = useState<Role>('SITE_LEAD')
   const [saving, setSaving] = useState(false)
+
+  const dirty = useMemo(
+    () =>
+      Boolean(email.trim() || fullName.trim()) ||
+      password !== DEFAULT_PASSWORD ||
+      role !== 'SITE_LEAD',
+    [email, fullName, password, role],
+  )
+  useRegisterUnsaved(dirty)
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AdminChrome from '../../shared/components/AdminChrome'
 import PageHeader from '../../shared/components/PageHeader'
+import { useRegisterUnsaved } from '../../shared/unsaved/UnsavedChangesContext'
 import { projectsApi as api } from './api'
 import type { Priority } from '../../shared/types'
 
@@ -15,6 +16,14 @@ export default function NewProjectPage() {
   const [projectValue, setProjectValue] = useState('')
   const [strategicNote, setStrategicNote] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const dirty = useMemo(
+    () =>
+      Boolean(name.trim() || location.trim() || projectValue.trim() || strategicNote.trim()) ||
+      priority !== 'MEDIUM',
+    [name, location, projectValue, strategicNote, priority],
+  )
+  useRegisterUnsaved(dirty)
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()

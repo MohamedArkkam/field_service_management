@@ -1,20 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AdminChrome from '../../shared/components/AdminChrome'
 import ConfirmDialog from '../../shared/components/ConfirmDialog'
 import PageHeader from '../../shared/components/PageHeader'
 import SideDrawer from '../../shared/components/SideDrawer'
+import { useRegisterUnsaved } from '../../shared/unsaved/UnsavedChangesContext'
 import { usersApi } from '../users/api'
 import { projectsApi as api } from './api'
 import type { Assignment, Priority, ProjectDetail, User } from '../../shared/types'
 
 type DrawerKind = 'assign' | null
 
+type EditableSnapshot = {
+  name: string
+  location: string | null
+  clientDisplayName: string | null
+  priority: Priority
+  projectValue: number | null
+  strategicNote: string | null
+}
+
+function snapshotOf(p: ProjectDetail): EditableSnapshot {
+  return {
+    name: p.name,
+    location: p.location,
+    clientDisplayName: p.clientDisplayName,
+    priority: p.priority,
+    projectValue: p.projectValue,
+    strategicNote: p.strategicNote,
+  }
+}
+
 export default function ProjectEditPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const [project, setProject] = useState<ProjectDetail | null>(null)
+  const [baseline, setBaseline] = useState<EditableSnapshot | null>(null)
   const [siteLeads, setSiteLeads] = useState<User[]>([])
   const [clients, setClients] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -41,6 +63,7 @@ export default function ProjectEditPage() {
         usersApi.listUsers('CLIENT'),
       ])
       setProject(detail)
+      setBaseline(snapshotOf(detail))
       setSiteLeads(leads)
       setClients(clientUsers)
     } catch (err) {
@@ -51,6 +74,12 @@ export default function ProjectEditPage() {
   useEffect(() => {
     void load()
   }, [id])
+
+  const dirty = useMemo(() => {
+    if (!project || !baseline) return false
+    return JSON.stringify(snapshotOf(project)) !== JSON.stringify(baseline)
+  }, [project, baseline])
+  useRegisterUnsaved(dirty)
 
   async function saveProject(e: FormEvent) {
     e.preventDefault()
