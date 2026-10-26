@@ -431,9 +431,6 @@ export default function ProjectDetailPage() {
                   </p>
                 )}
                 <div className="activity-meta muted">
-                  {item.status === 'PUBLISHED' && item.rating != null && (
-                    <span>Rating {item.rating}/5 · </span>
-                  )}
                   <span>Created {formatDateTime(item.createdAt)}</span>
                   {item.publishedAt && <span> · Published {formatDateTime(item.publishedAt)}</span>}
                 </div>

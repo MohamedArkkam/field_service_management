@@ -34,6 +34,7 @@ public class ProgressUpdate {
     @Column(nullable = false, length = 32)
     private ProgressStatus status = ProgressStatus.DRAFT;
 
+    /** Deferred — column kept nullable; publish no longer sets a value. */
     private Integer rating;
 
     @Column(name = "created_by", nullable = false)
@@ -99,10 +100,6 @@ public class ProgressUpdate {
         return status;
     }
 
-    public Integer getRating() {
-        return rating;
-    }
-
     public UUID getCreatedBy() {
         return createdBy;
     }
@@ -115,14 +112,10 @@ public class ProgressUpdate {
         return publishedAt;
     }
 
-    public void publish(int rating) {
+    public void publish() {
         if (this.status == ProgressStatus.PUBLISHED) {
             throw new IllegalArgumentException("Progress update already published");
         }
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("rating must be between 1 and 5");
-        }
-        this.rating = rating;
         this.status = ProgressStatus.PUBLISHED;
         this.publishedAt = Instant.now();
     }

@@ -37,7 +37,6 @@ export type ProgressUpdate = {
   note: string | null
   photoUrl: string | null
   status: ProgressStatus
-  rating: number | null
   createdAt: string
   publishedAt: string | null
 }

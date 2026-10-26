@@ -20,7 +20,7 @@ Internal money (purchases, wages) stays **company-only**. The client sees **appr
 | Role costume | Admin = scannable control tower; Site Lead = fast field; Client = calm timeline |
 | Tap > type (field) | Pickers, chips, large targets; short notes; photo URL/proof when available |
 | Status language | Shared chips for progress + payment — not colour alone |
-| Proof over prose | Title + note + rating (+ photo) beats long essays |
+| Proof over prose | Title + note (+ photo) beats long essays |
 | No finance to client | Copy + layout reinforce “Approved progress only” |
 
 **Avoid:** generic purple SaaS look; dashboard clutter on Client; card soup; fake stats in the hero; inventing roles or client money views.
@@ -110,7 +110,7 @@ Every list needs an empty state with **what + next action**:
 
 ### 5.5 Publish control
 Publishing must feel heavier than “Save draft”:
-- Explicit **Publish** + **rating 1–5**
+- Explicit **Publish** (rating deferred)
 - Optional confirm: “Client will see this”
 - After success: chip flips to Published
 
@@ -138,7 +138,7 @@ Publishing must feel heavier than “Save draft”:
 ### Client progress link
 | Screen | Intent |
 |--------|--------|
-| `/p/{token}` | Project name, location/client label, timeline of **published** updates only; rating + date; empty state; never bills/wages/priority |
+| `/p/{token}` | Project name, location/client label, timeline of **published** updates only; date; empty state; never bills/wages/priority |
 
 ## 7. Content & microcopy
 
@@ -171,7 +171,7 @@ Publishing must feel heavier than “Save draft”:
 ## 11. Acceptance checks
 
 - [ ] Client never sees draft, bills, wages, or priority/value  
-- [ ] Publish requires rating and changes chip to Published  
+- [ ] Publish changes chip to Published (rating deferred)  
 - [ ] Site Lead primary actions reachable in ≤2 taps from project home  
 - [ ] Admin liabilities answers “what do we still owe?” at a glance  
 - [ ] Empty states exist on main lists

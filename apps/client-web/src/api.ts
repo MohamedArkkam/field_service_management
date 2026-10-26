@@ -4,7 +4,6 @@ export type ClientProgressItem = {
   note: string | null
   photoUrl: string | null
   milestoneName: string | null
-  rating: number
   publishedAt: string
 }
 

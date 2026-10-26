@@ -195,8 +195,8 @@ public class DemoDataSeeder implements ApplicationRunner {
         ensureMilestone(MS_A4, project.getId(), "Finishing", "Plaster", 3);
         ensureMilestone(MS_A5, project.getId(), "Finishing", "Paint", 4);
 
-        ensurePublished(PROG_A_PUB1, project.getId(), leadId, m1.getId(), "Footings poured", "East wing complete", 4);
-        ensurePublished(PROG_A_PUB2, project.getId(), leadId, m2.getId(), "Columns cast", "Grid A–C", 5);
+        ensurePublished(PROG_A_PUB1, project.getId(), leadId, m1.getId(), "Footings poured", "East wing complete");
+        ensurePublished(PROG_A_PUB2, project.getId(), leadId, m2.getId(), "Columns cast", "Grid A–C");
         ensureDraft(PROG_A_DRAFT, project.getId(), leadId, m3.getId(), "Slab prep", "Waiting on steel — not published yet");
 
         ensurePurchase(BUY_UNPAID, project.getId(), leadId, "Cement (50 bags)", "City Yard", "18500", "0");
@@ -216,7 +216,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         ensureMilestone(MS_B2, project.getId(), "Repair", "Windows", 1);
         ensureMilestone(MS_B3, project.getId(), "Finish", "Paint classrooms", 2);
 
-        ensurePublished(PROG_B_PUB, project.getId(), leadId, m1.getId(), "Roof sheets fixed", "Block B done", 4);
+        ensurePublished(PROG_B_PUB, project.getId(), leadId, m1.getId(), "Roof sheets fixed", "Block B done");
         ensureDraft(PROG_B_DRAFT, project.getId(), leadId, null, "Window frames measured", "Draft for Fatima");
 
         ensurePurchase(BUY_B, project.getId(), leadId, "Roofing sheets", "BuildSupply", "9500", "0");
@@ -316,7 +316,7 @@ public class DemoDataSeeder implements ApplicationRunner {
     }
 
     private void ensurePublished(
-            UUID id, UUID projectId, UUID leadId, UUID milestoneId, String title, String note, int rating) {
+            UUID id, UUID projectId, UUID leadId, UUID milestoneId, String title, String note) {
         if (progressUpdateRepository.existsById(id)) {
             return;
         }
@@ -324,7 +324,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         update.setNote(note);
         update.setMilestoneId(milestoneId);
         update.setPhotoUrl("https://picsum.photos/seed/" + id.toString().substring(0, 8) + "/640/360");
-        update.publish(rating);
+        update.publish();
         progressUpdateRepository.save(update);
     }
 
