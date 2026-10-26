@@ -12,19 +12,11 @@ type Props = {
 export default function AdminChrome({ active }: Props) {
   const navigate = useNavigate()
   const { isDirty } = useUnsavedChanges()
-  const [discardOpen, setDiscardOpen] = useState(false)
+  const [signOutOpen, setSignOutOpen] = useState(false)
 
   function signOut() {
     setToken(null)
     navigate('/login')
-  }
-
-  function onSignOutClick() {
-    if (isDirty) {
-      setDiscardOpen(true)
-      return
-    }
-    signOut()
   }
 
   return (
@@ -46,26 +38,30 @@ export default function AdminChrome({ active }: Props) {
             </Link>
           </nav>
           <span className="app-nav-divider" aria-hidden="true" />
-          <button type="button" className="btn btn--ghost" onClick={onSignOutClick}>
+          <button type="button" className="btn btn--ghost" onClick={() => setSignOutOpen(true)}>
             Sign out
           </button>
         </div>
       </header>
 
       <ConfirmDialog
-        open={discardOpen}
-        title="Discard and sign out?"
+        open={signOutOpen}
+        title={isDirty ? 'Discard and sign out?' : 'Sign out?'}
         body={
-          <p className="muted">
-            You have unsaved changes on this page. Signing out will discard them.
-          </p>
+          isDirty ? (
+            <p className="muted">
+              You have unsaved changes on this page. Signing out will discard them.
+            </p>
+          ) : (
+            <p className="muted">You will need to sign in again to use Admin.</p>
+          )
         }
-        confirmLabel="Discard and sign out"
+        confirmLabel={isDirty ? 'Discard and sign out' : 'Sign out'}
         cancelLabel="Stay"
         tone="primary"
-        onCancel={() => setDiscardOpen(false)}
+        onCancel={() => setSignOutOpen(false)}
         onConfirm={() => {
-          setDiscardOpen(false)
+          setSignOutOpen(false)
           signOut()
         }}
       />
