@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AdminChrome from '../../shared/components/AdminChrome'
+import CompletionMeter from '../../shared/components/CompletionMeter'
 import ConfirmDialog from '../../shared/components/ConfirmDialog'
 import SideDrawer from '../../shared/components/SideDrawer'
 import { projectsApi as api } from './api'
@@ -231,7 +232,7 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <main className="shell">
+      <main className="shell shell--wide">
         <AdminChrome />
         <p>{error ?? 'Loading…'}</p>
         <Link to="/">← Projects</Link>
@@ -240,11 +241,21 @@ export default function ProjectDetailPage() {
   }
 
   const draftCount = progress.filter((p) => p.status === 'DRAFT').length
-  const publishedCount = progress.filter((p) => p.status === 'PUBLISHED').length
+  const published = progress.filter((p) => p.status === 'PUBLISHED')
+  const publishedCount = published.length
+  const milestonesWithPublishedProof = project.milestones.filter((m) =>
+    published.some((p) => p.milestoneId === m.id),
+  ).length
+  const lastPublishedAt =
+    published
+      .map((p) => p.publishedAt)
+      .filter((iso): iso is string => Boolean(iso))
+      .sort()
+      .at(-1) ?? null
   const clientLocalUrl = `http://localhost:5174${project.progressPath}`
 
   return (
-    <main className="shell">
+    <main className="shell shell--wide">
       <AdminChrome />
 
       <header className="project-chrome">
@@ -318,37 +329,28 @@ export default function ProjectDetailPage() {
       {notice && <p className="notice">{notice}</p>}
 
       <section className="card">
-        <h2>Project summary</h2>
-        <dl className="summary-grid">
-          <div className="summary-item">
-            <dt>Name</dt>
-            <dd>{project.name}</dd>
-          </div>
-          <div className="summary-item">
-            <dt>Location</dt>
-            <dd>{project.location || '—'}</dd>
-          </div>
-          <div className="summary-item">
-            <dt>Client display name</dt>
-            <dd>{project.clientDisplayName || '—'}</dd>
-          </div>
-          <div className="summary-item">
-            <dt>Priority</dt>
-            <dd>
-              <span className={priorityChipClass(project.priority)}>{project.priority}</span>
-            </dd>
-          </div>
-          <div className="summary-item">
-            <dt>Project value (Admin-only)</dt>
-            <dd>{project.projectValue ?? '—'}</dd>
-          </div>
-          {project.strategicNote ? (
-            <div className="summary-item summary-item--full">
-              <dt>Strategic note</dt>
-              <dd>{project.strategicNote}</dd>
-            </div>
-          ) : null}
-        </dl>
+        <div className="section-head">
+          <h2>Milestones</h2>
+          <button type="button" className="btn" onClick={openMilestoneDrawer}>
+            Add milestones
+          </button>
+        </div>
+        <CompletionMeter
+          size="hero"
+          milestoneCount={project.milestones.length}
+          milestonesWithPublishedProof={milestonesWithPublishedProof}
+          publishedUpdateCount={publishedCount}
+          lastPublishedAt={lastPublishedAt}
+        />
+        <ul className="milestone-checklist-preview">
+          {project.milestones.map((m) => (
+            <li key={m.id}>
+              {m.phaseName ? `${m.phaseName} — ` : ''}
+              {m.name}
+            </li>
+          ))}
+          {project.milestones.length === 0 && <li className="muted">No milestones yet.</li>}
+        </ul>
       </section>
 
       <section className="card">
@@ -443,22 +445,34 @@ export default function ProjectDetailPage() {
         )}
       </section>
 
-      <section className="card">
-        <div className="section-head">
-          <h2>Milestones</h2>
-          <button type="button" className="btn" onClick={openMilestoneDrawer}>
-            Add milestones
-          </button>
-        </div>
-        <ul>
-          {project.milestones.map((m) => (
-            <li key={m.id}>
-              {m.phaseName ? `${m.phaseName} — ` : ''}
-              {m.name}
-            </li>
-          ))}
-          {project.milestones.length === 0 && <li className="muted">No milestones yet.</li>}
-        </ul>
+      <section className="card card--compact">
+        <h2>Project summary</h2>
+        <dl className="summary-grid summary-grid--compact">
+          <div className="summary-item">
+            <dt>Location</dt>
+            <dd>{project.location || '—'}</dd>
+          </div>
+          <div className="summary-item">
+            <dt>Client display name</dt>
+            <dd>{project.clientDisplayName || '—'}</dd>
+          </div>
+          <div className="summary-item">
+            <dt>Priority</dt>
+            <dd>
+              <span className={priorityChipClass(project.priority)}>{project.priority}</span>
+            </dd>
+          </div>
+          <div className="summary-item">
+            <dt>Project value (Admin-only)</dt>
+            <dd>{project.projectValue ?? '—'}</dd>
+          </div>
+          {project.strategicNote ? (
+            <div className="summary-item summary-item--full">
+              <dt>Strategic note</dt>
+              <dd>{project.strategicNote}</dd>
+            </div>
+          ) : null}
+        </dl>
       </section>
 
       <SideDrawer
