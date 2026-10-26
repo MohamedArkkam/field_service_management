@@ -2,6 +2,13 @@
 
 Expo (React Native) app for **Site Lead** — online-required fast path against Core API.
 
+## Source layout (`src/`)
+- `screens/` — Login, projects, progress, purchases, workers
+- `api/` — HTTP client + types (same `/api/site/...` contracts as Swagger)
+- `auth/` — Auth context
+- `ui/` — theme + shared styles
+- `navigation/` — stack types
+
 ## What it does (M4)
 - Login (`SITE_LEAD` only)
 - List assigned projects

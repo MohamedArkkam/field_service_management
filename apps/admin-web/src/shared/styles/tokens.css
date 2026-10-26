@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap');
+
+:root {
+  /* SiteDirect tokens — accent: site green (same as client-web) */
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --text: #1c2420;
+  --text-muted: #5c6b63;
+  --border: #d5ddd8;
+  --accent: #1f6b4a;
+  --accent-contrast: #ffffff;
+  --accent-soft: #e3f0ea;
+  --draft: #6b7280;
+  --draft-bg: #eef0f2;
+  --published: #1f6b4a;
+  --published-bg: #e3f0ea;
+  --unpaid: #9b2c2c;
+  --unpaid-bg: #fce8e8;
+  --partial: #9a6700;
+  --partial-bg: #fef3c7;
+  --paid: #1f6b4a;
+  --paid-bg: #e3f0ea;
+  --danger: #9b2c2c;
+  --space: 8px;
+  --radius: 8px;
+  --font: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font);
+  line-height: 1.45;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, #e8efe9 0%, transparent 22%),
+    var(--bg);
+}
+
+a {
+  color: var(--accent);
+  font-weight: 600;
+}

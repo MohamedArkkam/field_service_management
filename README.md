@@ -14,7 +14,20 @@ Construction site progress and light site operations for a **single construction
 | `apps/api` | Core API — Java 21, Spring Boot, PostgreSQL, Flyway |
 | `apps/admin-web` | Admin / Owner — React + TypeScript |
 | `apps/client-web` | Client progress link — React + TypeScript |
-| `apps/sitelead-mobile` | Site Lead — React Native (Expo) placeholder until M4 |
+| `apps/sitelead-mobile` | Site Lead — React Native (Expo) |
+
+### Code map (where to look)
+
+| Concern | Admin web | API (`com.sitedirect.api`) |
+|---------|-----------|----------------------------|
+| Shell / routes | `src/app/` | `config/`, `security/`, `common/` |
+| Auth / users | `src/features/auth`, `features/users` | `auth/` |
+| Projects | `src/features/projects` | `projects/` |
+| Progress / publish | (under projects pages) | `progress/` |
+| Bills / labour / liabilities | `src/features/liabilities` | `billslabour/` |
+| Shared UI / types | `src/shared/` | — |
+| Site Lead mobile | — | same API packages; app layout: `screens/`, `api/`, `auth/`, `ui/` |
+| Client progress | `apps/client-web/src/pages` | `progress/` (public) |
 
 ## Product lock
 - Roles: **Admin / Owner**, **Site Lead**, **Client** only  

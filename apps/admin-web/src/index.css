@@ -1,4 +1,2 @@
-/* Tokens and shell styles live in App.css (SiteDirect design system). */
-body {
-  margin: 0;
-}
+@import './shared/styles/tokens.css';
+@import './shared/styles/app.css';

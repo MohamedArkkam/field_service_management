@@ -1,6 +1,6 @@
 package com.sitedirect.api.security;
 
-import com.sitedirect.api.repo.UserAccountRepository;
+import com.sitedirect.api.auth.UserAccountRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

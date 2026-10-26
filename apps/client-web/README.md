@@ -2,6 +2,10 @@
 
 React + TypeScript (Vite) — **Client progress link** (read-only).
 
+## Source layout
+- `src/pages/ProgressPage.tsx` — public timeline
+- `src/api.ts` — `GET /api/public/p/{token}`
+
 ## M2
 - Route: `/p/{token}` → `GET /api/public/p/{token}`
 - Shows **published** progress only (title, note, optional photo URL, rating, date)
