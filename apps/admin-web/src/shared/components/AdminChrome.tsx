@@ -22,41 +22,46 @@ export default function AdminChrome({ active }: Props) {
   return (
     <>
       <header className="app-header">
-        <Link to="/" className="brand-mark app-brand">
-          SiteDirect
-        </Link>
-        <div className="app-header-end">
-          <nav className="app-nav" aria-label="Admin">
-            <Link
-              to="/liabilities"
-              className={active === 'liabilities' ? 'nav-link is-active' : 'nav-link'}
+        <div className="app-header-inner">
+          <Link to="/" className="brand-mark app-brand">
+            SiteDirect
+          </Link>
+          <div className="app-header-end">
+            <nav className="app-nav" aria-label="Admin">
+              <Link
+                to="/liabilities"
+                className={active === 'liabilities' ? 'nav-link is-active' : 'nav-link'}
+              >
+                Liabilities
+              </Link>
+              <Link to="/users" className={active === 'users' ? 'nav-link is-active' : 'nav-link'}>
+                Users
+              </Link>
+            </nav>
+            <span className="app-nav-divider" aria-hidden="true" />
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => {
+                if (isDirty) setSignOutOpen(true)
+                else signOut()
+              }}
             >
-              Liabilities
-            </Link>
-            <Link to="/users" className={active === 'users' ? 'nav-link is-active' : 'nav-link'}>
-              Users
-            </Link>
-          </nav>
-          <span className="app-nav-divider" aria-hidden="true" />
-          <button type="button" className="btn btn--ghost" onClick={() => setSignOutOpen(true)}>
-            Sign out
-          </button>
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
       <ConfirmDialog
         open={signOutOpen}
-        title={isDirty ? 'Discard and sign out?' : 'Sign out?'}
+        title="Discard and sign out?"
         body={
-          isDirty ? (
-            <p className="muted">
-              You have unsaved changes on this page. Signing out will discard them.
-            </p>
-          ) : (
-            <p className="muted">You will need to sign in again to use Admin.</p>
-          )
+          <p className="muted">
+            You have unsaved changes on this page. Signing out will discard them.
+          </p>
         }
-        confirmLabel={isDirty ? 'Discard and sign out' : 'Sign out'}
+        confirmLabel="Discard and sign out"
         cancelLabel="Stay"
         tone="primary"
         onCancel={() => setSignOutOpen(false)}

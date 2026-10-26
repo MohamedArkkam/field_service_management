@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 :root {
   /* SiteDirect tokens — accent: site green (same as client-web) */
@@ -17,7 +17,9 @@
   --accent-soft: #e3f0ea;
   --shell-max: 960px;
   --shell-max-wide: 1200px;
-  --shell-pad-x: 1.75rem;
+  /* Shared horizontal gutter: sticky header inner + .shell / .shell--wide */
+  --content-pad-x: 1.75rem;
+  --shell-pad-x: var(--content-pad-x);
   --draft: #6b7280;
   --draft-bg: #eef0f2;
   --published: #1f6b4a;
@@ -41,6 +43,11 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  /* Keep focused/scrolled titles clear of sticky .app-header */
+  scroll-padding-top: 4.5rem;
 }
 
 body {
