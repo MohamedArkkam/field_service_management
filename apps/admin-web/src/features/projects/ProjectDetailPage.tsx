@@ -6,6 +6,7 @@ import ConfirmDialog from '../../shared/components/ConfirmDialog'
 import SideDrawer from '../../shared/components/SideDrawer'
 import { projectsApi as api } from './api'
 import type { ProgressUpdate, ProjectDetail } from '../../shared/types'
+import { MILESTONE_CATALOG, milestonesByPhase } from './milestoneCatalog'
 
 type ProgressFilter = 'ALL' | 'DRAFT' | 'PUBLISHED'
 
@@ -34,8 +35,9 @@ export default function ProjectDetailPage() {
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('ALL')
   const [error, setError] = useState<string | null>(null)
   const [milestoneOpen, setMilestoneOpen] = useState(false)
-  const [milestoneName, setMilestoneName] = useState('')
-  const [phaseName, setPhaseName] = useState('')
+  const [selectedMilestoneIds, setSelectedMilestoneIds] = useState<Set<string>>(() => new Set())
+  const [customName, setCustomName] = useState('')
+  const [customPhase, setCustomPhase] = useState('')
   const [savingMilestone, setSavingMilestone] = useState(false)
   const [linkOpen, setLinkOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -88,14 +90,77 @@ export default function ProjectDetailPage() {
     }
   }, [linkOpen])
 
-  async function addMilestone(e: FormEvent) {
-    e.preventDefault()
+  const existingMilestoneNames = useMemo(() => {
+    const names = new Set<string>()
+    for (const m of project?.milestones ?? []) {
+      names.add(m.name.trim().toLowerCase())
+    }
+    return names
+  }, [project])
+
+  const catalogGroups = useMemo(() => milestonesByPhase(), [])
+
+  function openMilestoneDrawer() {
+    setSelectedMilestoneIds(new Set())
+    setCustomName('')
+    setCustomPhase('')
+    setMilestoneOpen(true)
+  }
+
+  function toggleMilestoneId(optionId: string, alreadyOnProject: boolean) {
+    if (alreadyOnProject) return
+    setSelectedMilestoneIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(optionId)) next.delete(optionId)
+      else next.add(optionId)
+      return next
+    })
+  }
+
+  async function addSelectedMilestones() {
+    if (!project || selectedMilestoneIds.size === 0 || savingMilestone) return
     setError(null)
     setSavingMilestone(true)
     try {
-      await api.addMilestone(id, { name: milestoneName, phaseName: phaseName || undefined })
-      setMilestoneName('')
-      setPhaseName('')
+      let sortOrder = project.milestones.length
+      const toAdd = MILESTONE_CATALOG.filter((m) => selectedMilestoneIds.has(m.id)).filter(
+        (m) => !existingMilestoneNames.has(m.name.toLowerCase()),
+      )
+      for (const m of toAdd) {
+        await api.addMilestone(id, {
+          name: m.name,
+          phaseName: m.phase,
+          sortOrder: sortOrder++,
+        })
+      }
+      setSelectedMilestoneIds(new Set())
+      setMilestoneOpen(false)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Milestone failed')
+    } finally {
+      setSavingMilestone(false)
+    }
+  }
+
+  async function addCustomMilestone(e: FormEvent) {
+    e.preventDefault()
+    const name = customName.trim()
+    if (!name || savingMilestone) return
+    if (existingMilestoneNames.has(name.toLowerCase())) {
+      setError('That milestone is already on this project')
+      return
+    }
+    setError(null)
+    setSavingMilestone(true)
+    try {
+      await api.addMilestone(id, {
+        name,
+        phaseName: customPhase.trim() || undefined,
+        sortOrder: project?.milestones.length ?? 0,
+      })
+      setCustomName('')
+      setCustomPhase('')
       setMilestoneOpen(false)
       await load()
     } catch (err) {
@@ -381,8 +446,8 @@ export default function ProjectDetailPage() {
       <section className="card">
         <div className="section-head">
           <h2>Milestones</h2>
-          <button type="button" className="btn" onClick={() => setMilestoneOpen(true)}>
-            Add milestone
+          <button type="button" className="btn" onClick={openMilestoneDrawer}>
+            Add milestones
           </button>
         </div>
         <ul>
@@ -396,32 +461,108 @@ export default function ProjectDetailPage() {
         </ul>
       </section>
 
-      <SideDrawer open={milestoneOpen} title="Add milestone" onClose={() => setMilestoneOpen(false)}>
-        <form className="stack" onSubmit={addMilestone}>
-          <label>
-            Phase (optional)
-            <input value={phaseName} onChange={(e) => setPhaseName(e.target.value)} />
-          </label>
-          <label>
-            Milestone name
-            <input
-              value={milestoneName}
-              onChange={(e) => setMilestoneName(e.target.value)}
-              required
-              autoFocus
-            />
-          </label>
-          <button type="submit" className="btn" disabled={savingMilestone}>
+      <SideDrawer
+        open={milestoneOpen}
+        title="Add milestones"
+        onClose={() => !savingMilestone && setMilestoneOpen(false)}
+      >
+        <div className="stack milestone-picker">
+          <p className="muted">
+            Tick common milestones for this site, or add one custom name. No dates or BOQ — just the
+            checklist Site Leads publish against.
+          </p>
+
+          {selectedMilestoneIds.size > 0 ? (
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn--quiet btn--compact"
+                disabled={savingMilestone}
+                onClick={() => setSelectedMilestoneIds(new Set())}
+              >
+                Clear ticks
+              </button>
+            </div>
+          ) : null}
+
+          <div className="milestone-checklist">
+            {catalogGroups.map((group) => (
+              <fieldset key={group.phase} className="milestone-group">
+                <legend>{group.phase}</legend>
+                <ul className="milestone-option-list">
+                  {group.items.map((opt) => {
+                    const already = existingMilestoneNames.has(opt.name.toLowerCase())
+                    const checked = already || selectedMilestoneIds.has(opt.id)
+                    return (
+                      <li key={opt.id}>
+                        <label
+                          className={
+                            already ? 'milestone-option is-existing' : 'milestone-option'
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={already || savingMilestone}
+                            onChange={() => toggleMilestoneId(opt.id, already)}
+                          />
+                          <span>{opt.name}</span>
+                          {already ? <span className="muted">On project</span> : null}
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </fieldset>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="btn"
+            disabled={savingMilestone || selectedMilestoneIds.size === 0}
+            onClick={() => void addSelectedMilestones()}
+          >
             {savingMilestone ? (
               <>
                 <span className="btn-spinner" aria-hidden />
-                Saving…
+                Adding…
               </>
             ) : (
-              'Save milestone'
+              `Add selected (${selectedMilestoneIds.size})`
             )}
           </button>
-        </form>
+
+          <hr className="milestone-divider" />
+
+          <form className="stack" onSubmit={addCustomMilestone}>
+            <p className="muted">One-off custom milestone</p>
+            <label>
+              Phase (optional)
+              <input
+                value={customPhase}
+                onChange={(e) => setCustomPhase(e.target.value)}
+                disabled={savingMilestone}
+              />
+            </label>
+            <label>
+              Milestone name
+              <input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                required
+                disabled={savingMilestone}
+              />
+            </label>
+            <button
+              type="submit"
+              className="btn btn--secondary"
+              disabled={savingMilestone || !customName.trim()}
+            >
+              Add custom
+            </button>
+          </form>
+        </div>
       </SideDrawer>
 
       <ConfirmDialog

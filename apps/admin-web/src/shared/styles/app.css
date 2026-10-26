@@ -515,13 +515,78 @@ button.is-loading,
 
 .drawer-panel {
   position: relative;
-  width: min(400px, 100%);
+  width: min(440px, 100%);
   height: 100%;
   background: var(--surface);
   border-left: 1px solid var(--border);
   padding: 1.25rem;
   overflow-y: auto;
   box-shadow: none;
+}
+
+.milestone-picker {
+  gap: 1rem;
+}
+
+.milestone-checklist {
+  display: grid;
+  gap: 0.85rem;
+  max-height: min(48vh, 22rem);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.milestone-group {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.milestone-group legend {
+  padding: 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.milestone-option-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.milestone-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.milestone-option input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--accent);
+}
+
+.milestone-option.is-existing {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.milestone-option.is-existing > .muted {
+  margin-left: auto;
+  font-size: 0.78rem;
+}
+
+.milestone-divider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 0.25rem 0;
 }
 
 .drawer-header {
