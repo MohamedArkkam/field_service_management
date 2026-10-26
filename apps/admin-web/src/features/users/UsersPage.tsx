@@ -92,7 +92,7 @@ export default function UsersPage() {
   const isDeactivate = pending?.kind === 'deactivate'
 
   return (
-    <main className="shell">
+    <main className="shell shell--wide">
       <AdminChrome active="users" />
       <PageHeader
         backTo="/"

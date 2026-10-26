@@ -30,7 +30,7 @@ export default function LiabilitiesPage() {
   }, [data])
 
   return (
-    <main className="shell">
+    <main className="shell shell--wide">
       <AdminChrome active="liabilities" />
       <PageHeader
         backTo="/"

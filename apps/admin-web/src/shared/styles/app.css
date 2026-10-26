@@ -89,6 +89,12 @@ button.danger:focus-visible {
   outline-color: var(--text-muted);
 }
 
+.btn--compact {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.85rem;
+  min-height: 2rem;
+}
+
 .btn:hover:not(:disabled):not(.is-loading),
 button:hover:not(:disabled):not(.is-loading),
 .button-link:hover:not(.is-disabled) {
@@ -159,9 +165,67 @@ button.is-loading,
   align-items: center;
   gap: 1.25rem;
   min-height: 52px;
+  color: var(--header-fg);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  /* Full-bleed bar; inner padding aligns with .shell--wide content */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: calc(-1 * var(--shell-pad-x));
   margin-bottom: calc(var(--space) * 3);
-  padding: calc(var(--space) * 0.5) 0 calc(var(--space) * 2);
-  border-bottom: 1px solid var(--border);
+  padding-top: calc(var(--space) * 1.5);
+  padding-bottom: calc(var(--space) * 1.5);
+  padding-left: max(
+    var(--shell-pad-x),
+    calc((100vw - var(--shell-max-wide)) / 2 + var(--shell-pad-x))
+  );
+  padding-right: max(
+    var(--shell-pad-x),
+    calc((100vw - var(--shell-max-wide)) / 2 + var(--shell-pad-x))
+  );
+}
+
+.app-header .brand-mark,
+.app-header .app-brand {
+  color: var(--header-fg);
+}
+
+.app-header .nav-link {
+  color: var(--header-muted);
+}
+
+.app-header .nav-link:hover,
+.app-header .nav-link.is-active {
+  color: var(--header-fg);
+}
+
+.app-header .nav-link:focus-visible {
+  outline-color: var(--header-fg);
+}
+
+.app-header .app-nav-divider {
+  background: rgba(244, 241, 234, 0.22);
+}
+
+.app-header .btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--header-fg);
+  --btn-hover: rgba(244, 241, 234, 0.1);
+  --btn-active: rgba(244, 241, 234, 0.16);
+  color: var(--header-fg);
+  border-color: rgba(244, 241, 234, 0.35);
+  box-shadow: none;
+}
+
+.app-header .btn--ghost:hover:not(:disabled):not(.is-loading) {
+  color: var(--header-fg);
+  background: var(--btn-hover);
+  box-shadow: none;
+}
+
+.app-header .btn--ghost:focus-visible {
+  outline-color: var(--header-fg);
 }
 
 .app-brand {
@@ -493,9 +557,47 @@ h2 {
 }
 
 .shell {
-  max-width: 960px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: calc(var(--space) * 3) calc(var(--space) * 3) calc(var(--space) * 5);
+  padding: var(--shell-pad-x) var(--shell-pad-x) calc(var(--space) * 5);
+}
+
+/* List / table portfolio pages */
+.shell--wide {
+  max-width: var(--shell-max-wide);
+}
+
+.client-link-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  min-width: 9rem;
+}
+
+.client-link-path {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast {
+  position: fixed;
+  z-index: 90;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid #b7d4c4;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(28, 36, 32, 0.12);
 }
 
 .brand-mark {

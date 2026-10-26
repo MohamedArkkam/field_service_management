@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminChrome from '../../shared/components/AdminChrome'
+import ClientLinkCell from '../../shared/components/ClientLinkCell'
 import CompletionMeter from '../../shared/components/CompletionMeter'
 import PageHeader from '../../shared/components/PageHeader'
 import { projectsApi as api } from './api'
@@ -17,6 +18,7 @@ function priorityChipClass(priority: Priority) {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
 
   const sortedProjects = useMemo(
     () =>
@@ -35,8 +37,14 @@ export default function ProjectsPage() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load projects'))
   }, [])
 
+  useEffect(() => {
+    if (!toast) return
+    const id = window.setTimeout(() => setToast(null), 2200)
+    return () => window.clearTimeout(id)
+  }, [toast])
+
   return (
-    <main className="shell">
+    <main className="shell shell--wide">
       <AdminChrome />
       <PageHeader
         title="Projects"
@@ -102,7 +110,10 @@ export default function ProjectsPage() {
                   </td>
                   <td>{p.projectValue ?? '—'}</td>
                   <td>
-                    <code>{p.progressPath}</code>
+                    <ClientLinkCell
+                      progressPath={p.progressPath}
+                      onCopied={() => setToast('Link copied.')}
+                    />
                   </td>
                 </tr>
               ))}
@@ -110,6 +121,12 @@ export default function ProjectsPage() {
           </table>
         )}
       </section>
+
+      {toast ? (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      ) : null}
     </main>
   )
 }

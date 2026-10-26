@@ -3,6 +3,11 @@
 :root {
   /* SiteDirect tokens — accent: site green (same as client-web) */
   --bg: #f4f1ea;
+  /* Forest/sage chrome — darker than page stone, not primary button green */
+  --header-bg: #1f3830;
+  --header-fg: #f4f1ea;
+  --header-muted: #b8c9c0;
+  --header-border: rgba(244, 241, 234, 0.14);
   --surface: #ffffff;
   --text: #1c2420;
   --text-muted: #5c6b63;
@@ -10,6 +15,9 @@
   --accent: #1f6b4a;
   --accent-contrast: #ffffff;
   --accent-soft: #e3f0ea;
+  --shell-max: 960px;
+  --shell-max-wide: 1200px;
+  --shell-pad-x: 1.75rem;
   --draft: #6b7280;
   --draft-bg: #eef0f2;
   --published: #1f6b4a;
