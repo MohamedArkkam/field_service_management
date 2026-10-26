@@ -1,8 +1,8 @@
 package com.sitedirect.api.bootstrap;
 
-import com.sitedirect.api.domain.Role;
-import com.sitedirect.api.domain.UserAccount;
-import com.sitedirect.api.repo.UserAccountRepository;
+import com.sitedirect.api.common.Role;
+import com.sitedirect.api.auth.UserAccount;
+import com.sitedirect.api.auth.UserAccountRepository;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,6 @@
 package com.sitedirect.api.security;
 
-import com.sitedirect.api.repo.UserAccountRepository;
+import com.sitedirect.api.auth.UserAccountRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -2,6 +2,20 @@
 
 Java 21 · Spring Boot · PostgreSQL · Flyway · JWT security
 
+## Package map (`com.sitedirect.api`)
+
+| Package | Responsibility |
+|---------|----------------|
+| `config` / `security` | Spring Security, JWT, OpenAPI |
+| `common` | Health, exception handler, shared `Role` |
+| `auth` | Login, users, deactivate/reactivate |
+| `projects` | Projects, milestones, assignments, archive, site access |
+| `progress` | Draft/publish progress (Admin, Site Lead, public client link) |
+| `billslabour` | Purchases, workers, attendance, labour, liabilities |
+| `bootstrap` | Admin + demo seeders |
+
+Controllers keep existing URL prefixes (`/api/auth`, `/api/projects`, `/api/site`, `/api/public`, `/api/admin`).
+
 ## M5 hardening
 - Integration tests (`SiteDirectApiIntegrationTest`) — Docker CLI Postgres
 - OpenAPI / Swagger UI: http://localhost:8080/swagger-ui.html

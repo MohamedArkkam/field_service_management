@@ -1,7 +1,7 @@
 package com.sitedirect.api.security;
 
-import com.sitedirect.api.domain.Role;
-import com.sitedirect.api.domain.UserAccount;
+import com.sitedirect.api.common.Role;
+import com.sitedirect.api.auth.UserAccount;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
