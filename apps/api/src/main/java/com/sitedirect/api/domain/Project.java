@@ -38,6 +38,9 @@ public class Project {
     @Column(name = "progress_token", nullable = false, unique = true, length = 64)
     private String progressToken;
 
+    @Column(nullable = false)
+    private boolean archived = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -107,6 +110,28 @@ public class Project {
 
     public String getProgressToken() {
         return progressToken;
+    }
+
+    public void rotateProgressToken(String newToken) {
+        if (newToken == null || newToken.isBlank()) {
+            throw new IllegalArgumentException("progressToken is required");
+        }
+        this.progressToken = newToken;
+        touch();
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void archive() {
+        this.archived = true;
+        touch();
+    }
+
+    public void unarchive() {
+        this.archived = false;
+        touch();
     }
 
     public Instant getCreatedAt() {

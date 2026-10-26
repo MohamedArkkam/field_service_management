@@ -21,9 +21,22 @@ Idempotent — safe to restart; skips rows that already exist. Disable with `SIT
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | `admin@sitedirect.local` | `Admin123!` |
-| Site Lead | `sitelead@sitedirect.local` | `Lead1234!` |
+| Site Lead (Kumar) | `sitelead@sitedirect.local` | `Lead1234!` |
+| Site Lead (Fatima) | `fatima@sitedirect.local` | `Lead1234!` |
+| Client (Joseph) | `joseph@example.com` | `Client123!` |
+| Client (School) | `school@example.com` | `Client123!` |
 
-Also seeds **Demo Site Project** and assigns the Site Lead to it (for Expo Go / Swagger demos).
+### Demo projects (UI review)
+
+| Project | Priority | Assigned | Seeded content |
+|---------|----------|----------|----------------|
+| **Joseph House** | HIGH | Kumar + Joseph | 5 milestones, 2 published + 1 draft progress, Unpaid/Partial/Paid purchases, daily + monthly workers + attendance/labour |
+| **School block repair** | MEDIUM | Fatima + School | 3 milestones, 1 published + 1 draft, 1 unpaid purchase |
+| **Shop renovation** | LOW | Kumar only | Thin — empty milestones/activity (empty states) |
+
+Public tokens: `demo-site-progress-token` (Joseph), `demo-school-block-token`, `demo-shop-reno-token` → `/p/{token}` or `GET /api/public/p/{token}`.
+
+If an older thin seed already ran, restart the API once so milestones/bills/labour fill in. Recreate the DB only if you need a clean slate.
 
 ## Run
 ```bash

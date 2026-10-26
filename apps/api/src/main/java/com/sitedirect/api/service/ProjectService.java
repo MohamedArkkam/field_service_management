@@ -130,6 +130,9 @@ public class ProjectService {
         UserAccount user = userAccountRepository
                 .findById(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (!user.isActive()) {
+            throw new IllegalArgumentException("Cannot assign an inactive user");
+        }
         if (user.getRole() != request.assignmentRole()) {
             throw new IllegalArgumentException("User role must match assignmentRole");
         }
@@ -147,17 +150,47 @@ public class ProjectService {
         return toAssignment(assignment, user);
     }
 
+    /**
+     * Removes an assignment. Removing a CLIENT rotates the progress token so the old
+     * public link stops working.
+     */
     @Transactional
-    public void removeAssignment(UUID projectId, UUID assignmentId) {
-        requireProject(projectId);
+    public ProjectResponse removeAssignment(UUID projectId, UUID assignmentId) {
+        Project project = requireProject(projectId);
         ProjectAssignment assignment = assignmentRepository
                 .findById(assignmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found"));
         if (!assignment.getProjectId().equals(projectId)) {
             throw new IllegalArgumentException("Assignment does not belong to project");
         }
+        Role removedRole = assignment.getAssignmentRole();
         assignmentRepository.delete(assignment);
-        requireProject(projectId).touch();
+        if (removedRole == Role.CLIENT) {
+            project.rotateProgressToken(newProgressToken());
+        } else {
+            project.touch();
+        }
+        return toDetail(project);
+    }
+
+    @Transactional
+    public ProjectResponse archiveProject(UUID id) {
+        Project project = requireProject(id);
+        if (project.isArchived()) {
+            return toDetail(project);
+        }
+        project.archive();
+        return toDetail(project);
+    }
+
+    @Transactional
+    public ProjectResponse unarchiveProject(UUID id) {
+        Project project = requireProject(id);
+        if (!project.isArchived()) {
+            return toDetail(project);
+        }
+        project.unarchive();
+        return toDetail(project);
     }
 
     @Transactional(readOnly = true)
@@ -180,6 +213,7 @@ public class ProjectService {
                 project.getPriority(),
                 project.getProjectValue(),
                 "/p/" + project.getProgressToken(),
+                project.isArchived(),
                 project.getUpdatedAt(),
                 signal.milestoneCount(),
                 signal.milestonesWithPublishedProof(),
@@ -264,6 +298,7 @@ public class ProjectService {
                 project.getStrategicNote(),
                 project.getProgressToken(),
                 "/p/" + project.getProgressToken(),
+                project.isArchived(),
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 milestones,

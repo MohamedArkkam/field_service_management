@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { api, setToken } from '../api'
+import { Link } from 'react-router-dom'
+import AdminChrome from '../components/AdminChrome'
+import PageHeader from '../components/PageHeader'
+import { api } from '../api'
 import type { LiabilityOverview } from '../api'
 
 function money(value: number) {
@@ -12,7 +14,6 @@ function money(value: number) {
 }
 
 export default function LiabilitiesPage() {
-  const navigate = useNavigate()
   const [data, setData] = useState<LiabilityOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,27 +31,13 @@ export default function LiabilitiesPage() {
 
   return (
     <main className="shell">
-      <div className="topbar">
-        <div>
-          <p className="brand-mark">SiteDirect</p>
-          <h1>Outstanding liabilities</h1>
-          <p className="muted">What do we still owe? Unpaid / Partial purchases and open labour (internal only)</p>
-        </div>
-        <div className="row">
-          <Link to="/">Projects</Link>
-          <Link to="/users">Users</Link>
-          <button
-            className="secondary"
-            type="button"
-            onClick={() => {
-              setToken(null)
-              navigate('/login')
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
+      <AdminChrome active="liabilities" />
+      <PageHeader
+        backTo="/"
+        backLabel="← Projects"
+        title="Outstanding liabilities"
+        subtitle="What do we still owe? Unpaid / Partial purchases and open labour (internal only)"
+      />
 
       {error && <p className="error">{error}</p>}
 
@@ -85,7 +72,9 @@ export default function LiabilitiesPage() {
             {projects.length === 0 ? (
               <div className="empty-state">
                 <h3>No outstanding amounts</h3>
-                <p className="muted">When Site Leads log Unpaid or Partial purchases (or open labour), they show up here.</p>
+                <p className="muted">
+                  When Site Leads log Unpaid or Partial purchases (or open labour), they show up here.
+                </p>
               </div>
             ) : (
               <table>
@@ -117,9 +106,7 @@ export default function LiabilitiesPage() {
                             </span>
                           )}
                           {p.openLabourCount > 0 && (
-                            <span className="chip chip--draft">
-                              {p.openLabourCount} labour
-                            </span>
+                            <span className="chip chip--draft">{p.openLabourCount} labour</span>
                           )}
                           {p.openPurchaseCount === 0 && p.openLabourCount === 0 && (
                             <span className="muted">—</span>

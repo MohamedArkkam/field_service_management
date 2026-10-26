@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import NewProjectPage from './pages/NewProjectPage'
 import NewUserPage from './pages/NewUserPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
+import ProjectEditPage from './pages/ProjectEditPage'
 import ProjectsPage from './pages/ProjectsPage'
 import UsersPage from './pages/UsersPage'
 
@@ -32,6 +33,14 @@ function App() {
         element={
           <RequireAuth>
             <NewProjectPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/projects/:id/edit"
+        element={
+          <RequireAuth>
+            <ProjectEditPage />
           </RequireAuth>
         }
       />

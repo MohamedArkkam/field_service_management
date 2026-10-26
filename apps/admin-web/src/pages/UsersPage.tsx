@@ -1,50 +1,113 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { api, setToken } from '../api'
+import { Link } from 'react-router-dom'
+import AdminChrome from '../components/AdminChrome'
+import ConfirmDialog from '../components/ConfirmDialog'
+import PageHeader from '../components/PageHeader'
+import { api } from '../api'
 import type { User } from '../api'
 
+type PendingAction = { user: User; kind: 'deactivate' | 'reactivate' }
+
 export default function UsersPage() {
-  const navigate = useNavigate()
   const [siteLeads, setSiteLeads] = useState<User[]>([])
   const [clients, setClients] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [pending, setPending] = useState<PendingAction | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function load() {
+    try {
+      const [leads, clientUsers] = await Promise.all([
+        api.listUsers('SITE_LEAD'),
+        api.listUsers('CLIENT'),
+      ])
+      setSiteLeads(leads)
+      setClients(clientUsers)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users')
+    }
+  }
 
   useEffect(() => {
-    Promise.all([api.listUsers('SITE_LEAD'), api.listUsers('CLIENT')])
-      .then(([leads, clientUsers]) => {
-        setSiteLeads(leads)
-        setClients(clientUsers)
-      })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load users'))
+    void load()
   }, [])
+
+  async function confirmPending() {
+    if (!pending || busy) return
+    setError(null)
+    setBusy(true)
+    try {
+      if (pending.kind === 'deactivate') {
+        await api.deactivateUser(pending.user.id)
+        setNotice(`${pending.user.fullName} is inactive and cannot sign in. You can reactivate later.`)
+      } else {
+        await api.reactivateUser(pending.user.id)
+        setNotice(`${pending.user.fullName} can sign in again.`)
+      }
+      setPending(null)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Action failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function renderUserList(users: User[]) {
+    if (users.length === 0) return null
+    return (
+      <ul>
+        {users.map((u) => (
+          <li key={u.id} className="user-row">
+            <div className="user-row-meta">
+              <span>
+                {u.fullName} — {u.email}
+              </span>
+              {!u.active ? <span className="chip chip--inactive">Inactive</span> : null}
+            </div>
+            {u.active ? (
+              <button
+                type="button"
+                className="btn btn--danger"
+                onClick={() => setPending({ user: u, kind: 'deactivate' })}
+              >
+                Deactivate
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setPending({ user: u, kind: 'reactivate' })}
+              >
+                Reactivate
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  const isDeactivate = pending?.kind === 'deactivate'
 
   return (
     <main className="shell">
-      <div className="topbar">
-        <div>
-          <Link to="/">← Projects</Link>
-          <p className="brand-mark">SiteDirect</p>
-          <h1>Users</h1>
-          <p className="muted">Site Lead and Client accounts for assignment</p>
-        </div>
-        <div className="row">
+      <AdminChrome active="users" />
+      <PageHeader
+        backTo="/"
+        backLabel="← Projects"
+        title="Users"
+        subtitle="Site Lead and Client accounts for assignment"
+        actions={
           <Link to="/users/new" className="button-link">
             Create user
           </Link>
-          <button
-            className="secondary"
-            type="button"
-            onClick={() => {
-              setToken(null)
-              navigate('/login')
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {error && <p className="error">{error}</p>}
+      {notice && <p className="notice">{notice}</p>}
 
       <section className="card">
         <h2>Site Leads</h2>
@@ -56,13 +119,7 @@ export default function UsersPage() {
             </p>
           </div>
         ) : (
-          <ul>
-            {siteLeads.map((u) => (
-              <li key={u.id}>
-                {u.fullName} — {u.email}
-              </li>
-            ))}
-          </ul>
+          renderUserList(siteLeads)
         )}
       </section>
 
@@ -76,15 +133,42 @@ export default function UsersPage() {
             </p>
           </div>
         ) : (
-          <ul>
-            {clients.map((u) => (
-              <li key={u.id}>
-                {u.fullName} — {u.email}
-              </li>
-            ))}
-          </ul>
+          renderUserList(clients)
         )}
       </section>
+
+      <ConfirmDialog
+        open={pending != null}
+        title={isDeactivate ? 'Deactivate user' : 'Reactivate user'}
+        body={
+          pending ? (
+            isDeactivate ? (
+              <>
+                <p>
+                  Deactivate <strong>{pending.user.fullName}</strong> ({pending.user.email})?
+                </p>
+                <ul className="confirm-list">
+                  <li>They cannot sign in until you reactivate.</li>
+                  <li>Project assignments stay until you remove them.</li>
+                  <li>This is not a hard delete — you can reactivate later.</li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <p>
+                  Reactivate <strong>{pending.user.fullName}</strong> ({pending.user.email})?
+                </p>
+                <p className="muted">They can sign in again with their existing password.</p>
+              </>
+            )
+          ) : null
+        }
+        confirmLabel={isDeactivate ? 'Deactivate user' : 'Reactivate user'}
+        tone={isDeactivate ? 'danger' : 'primary'}
+        loading={busy}
+        onCancel={() => !busy && setPending(null)}
+        onConfirm={() => void confirmPending()}
+      />
     </main>
   )
 }

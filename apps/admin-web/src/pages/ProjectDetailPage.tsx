@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import AdminChrome from '../components/AdminChrome'
+import ConfirmDialog from '../components/ConfirmDialog'
 import SideDrawer from '../components/SideDrawer'
-import { api, setToken } from '../api'
-import type { Assignment, Priority, ProgressUpdate, ProjectDetail, User } from '../api'
+import { api } from '../api'
+import type { ProgressUpdate, ProjectDetail } from '../api'
 
 type ProgressFilter = 'ALL' | 'DRAFT' | 'PUBLISHED'
-type DrawerKind = 'milestone' | 'assign' | null
 
 function formatDateTime(iso: string | null | undefined) {
   if (!iso) return '—'
@@ -20,41 +21,46 @@ function formatDateTime(iso: string | null | undefined) {
   }
 }
 
+function priorityChipClass(priority: string) {
+  if (priority === 'HIGH') return 'chip chip--priority-high'
+  if (priority === 'LOW') return 'chip chip--priority-low'
+  return 'chip chip--priority-medium'
+}
+
 export default function ProjectDetailPage() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
   const [project, setProject] = useState<ProjectDetail | null>(null)
-  const [siteLeads, setSiteLeads] = useState<User[]>([])
-  const [clients, setClients] = useState<User[]>([])
   const [progress, setProgress] = useState<ProgressUpdate[]>([])
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('ALL')
   const [error, setError] = useState<string | null>(null)
-  const [drawer, setDrawer] = useState<DrawerKind>(null)
+  const [milestoneOpen, setMilestoneOpen] = useState(false)
   const [milestoneName, setMilestoneName] = useState('')
   const [phaseName, setPhaseName] = useState('')
-  const [assignRole, setAssignRole] = useState<'SITE_LEAD' | 'CLIENT'>('SITE_LEAD')
-  const [assignUserId, setAssignUserId] = useState('')
+  const [savingMilestone, setSavingMilestone] = useState(false)
+  const [linkOpen, setLinkOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [pendingDraft, setPendingDraft] = useState<ProgressUpdate | null>(null)
+  const [deletingDraft, setDeletingDraft] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+  const [unarchiveOpen, setUnarchiveOpen] = useState(false)
+  const [unarchiving, setUnarchiving] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   const filteredProgress = useMemo(() => {
     if (progressFilter === 'ALL') return progress
     return progress.filter((item) => item.status === progressFilter)
   }, [progress, progressFilter])
 
-  const assignOptions = assignRole === 'SITE_LEAD' ? siteLeads : clients
+  const siteLead = project?.assignments.find((a) => a.assignmentRole === 'SITE_LEAD')
+  const client = project?.assignments.find((a) => a.assignmentRole === 'CLIENT')
 
   async function load() {
     try {
-      const [detail, leads, clientUsers, updates] = await Promise.all([
-        api.getProject(id),
-        api.listUsers('SITE_LEAD'),
-        api.listUsers('CLIENT'),
-        api.listProgress(id),
-      ])
+      const [detail, updates] = await Promise.all([api.getProject(id), api.listProgress(id)])
       setProject(detail)
-      setSiteLeads(leads)
-      setClients(clientUsers)
       setProgress(updates)
-      setAssignUserId((leads[0] ?? clientUsers[0])?.id ?? '')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load project')
     }
@@ -64,176 +70,227 @@ export default function ProjectDetailPage() {
     void load()
   }, [id])
 
-  async function saveProject(e: FormEvent) {
-    e.preventDefault()
-    if (!project) return
-    setError(null)
-    try {
-      const updated = await api.updateProject(project.id, {
-        name: project.name,
-        location: project.location,
-        clientDisplayName: project.clientDisplayName,
-        priority: project.priority,
-        projectValue: project.projectValue,
-        strategicNote: project.strategicNote,
-      })
-      setProject(updated)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed')
+  useEffect(() => {
+    if (!linkOpen) return
+    function onDocClick(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setLinkOpen(false)
+      }
     }
-  }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setLinkOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [linkOpen])
 
   async function addMilestone(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setSavingMilestone(true)
     try {
       await api.addMilestone(id, { name: milestoneName, phaseName: phaseName || undefined })
       setMilestoneName('')
       setPhaseName('')
-      setDrawer(null)
+      setMilestoneOpen(false)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Milestone failed')
+    } finally {
+      setSavingMilestone(false)
     }
   }
 
-  async function assign(e: FormEvent) {
-    e.preventDefault()
-    if (!assignUserId) {
-      setError(`Create a ${assignRole} user first`)
-      return
-    }
-    setError(null)
+  async function copyClientUrl() {
+    if (!project) return
+    const url = `http://localhost:5174${project.progressPath}`
     try {
-      await api.assign(id, { userId: assignUserId, assignmentRole: assignRole })
-      setDrawer(null)
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('Could not copy to clipboard')
+    }
+  }
+
+  async function confirmDeleteDraft() {
+    if (!pendingDraft || deletingDraft) return
+    setError(null)
+    setDeletingDraft(true)
+    try {
+      await api.deleteDraftProgress(id, pendingDraft.id)
+      setPendingDraft(null)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Assign failed')
+      setError(err instanceof Error ? err.message : 'Delete failed')
+    } finally {
+      setDeletingDraft(false)
     }
   }
 
-  async function removeAssignment(assignment: Assignment) {
+  async function confirmArchive() {
+    if (!project || archiving || project.archived) return
     setError(null)
+    setArchiving(true)
     try {
-      await api.removeAssignment(id, assignment.id)
-      await load()
+      const updated = await api.archiveProject(project.id)
+      setProject(updated)
+      setArchiveOpen(false)
+      setNotice('Project archived. Site Leads no longer see it on mobile. You can restore it anytime.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Remove failed')
+      setError(err instanceof Error ? err.message : 'Archive failed')
+    } finally {
+      setArchiving(false)
     }
   }
 
-  function openAssign(role: 'SITE_LEAD' | 'CLIENT') {
-    setAssignRole(role)
-    const list = role === 'SITE_LEAD' ? siteLeads : clients
-    setAssignUserId(list[0]?.id ?? '')
-    setDrawer('assign')
+  async function confirmUnarchive() {
+    if (!project || unarchiving || !project.archived) return
+    setError(null)
+    setUnarchiving(true)
+    try {
+      const updated = await api.unarchiveProject(project.id)
+      setProject(updated)
+      setUnarchiveOpen(false)
+      setNotice('Project restored. Assigned Site Leads can see it on mobile again.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Restore failed')
+    } finally {
+      setUnarchiving(false)
+    }
   }
 
   if (!project) {
     return (
       <main className="shell">
+        <AdminChrome />
         <p>{error ?? 'Loading…'}</p>
-        <Link to="/">Back</Link>
+        <Link to="/">← Projects</Link>
       </main>
     )
   }
 
   const draftCount = progress.filter((p) => p.status === 'DRAFT').length
   const publishedCount = progress.filter((p) => p.status === 'PUBLISHED').length
+  const clientLocalUrl = `http://localhost:5174${project.progressPath}`
 
   return (
     <main className="shell">
-      <div className="topbar">
-        <div>
-          <Link to="/">← Projects</Link>
-          <p className="brand-mark">SiteDirect</p>
-          <h1>{project.name}</h1>
+      <AdminChrome />
+
+      <header className="project-chrome">
+        {/* Row 1: back | Edit */}
+        <div className="project-chrome-row">
+          <Link to="/" className="back-link">
+            ← Projects
+          </Link>
+          <div className="row">
+            {project.archived ? (
+              <>
+                <span className="chip chip--archived">Archived</span>
+                <button type="button" className="btn" onClick={() => setUnarchiveOpen(true)}>
+                  Restore
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn btn--danger" onClick={() => setArchiveOpen(true)}>
+                Archive
+              </button>
+            )}
+            <Link to={`/projects/${project.id}/edit`} className="button-link">
+              Edit project
+            </Link>
+          </div>
         </div>
-        <button
-          className="secondary"
-          type="button"
-          onClick={() => {
-            setToken(null)
-            navigate('/login')
-          }}
-        >
-          Sign out
-        </button>
-      </div>
+
+        {/* Row 2: title | parties (+ client link icon) */}
+        <div className="project-chrome-row project-chrome-row--title">
+          <h1>{project.name}</h1>
+          <div className="project-chrome-parties" aria-label="Assigned parties">
+            <p className={siteLead ? 'party-line' : 'party-line is-unassigned'}>
+              <span className="party-role">Site Lead</span>
+              {' · '}
+              {siteLead ? siteLead.userFullName : 'Unassigned'}
+            </p>
+            <p className={client ? 'party-line' : 'party-line is-unassigned'}>
+              <span className="party-role">Client</span>
+              {' · '}
+              {client ? client.userFullName : 'Unassigned'}
+              <span className="party-client-wrap" ref={popoverRef}>
+                <button
+                  type="button"
+                  className="btn party-icon-btn"
+                  aria-label="Client progress link"
+                  aria-expanded={linkOpen}
+                  aria-haspopup="dialog"
+                  onClick={() => setLinkOpen((open) => !open)}
+                >
+                  ↗
+                </button>
+                {linkOpen ? (
+                  <div className="progress-popover" role="dialog" aria-label="Client progress link">
+                    <p className="muted">Published updates only — no drafts, bills, or wages.</p>
+                    <p className="muted">Path</p>
+                    <code>{project.progressPath}</code>
+                    <p className="muted">Local client URL</p>
+                    <code>{clientLocalUrl}</code>
+                    <button type="button" className="btn" onClick={() => void copyClientUrl()}>
+                      {copied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                ) : null}
+              </span>
+            </p>
+          </div>
+        </div>
+      </header>
 
       {error && <p className="error">{error}</p>}
+      {notice && <p className="notice">{notice}</p>}
 
       <section className="card">
-        <h2>Project details (Admin-only fields included)</h2>
-        <form className="stack" onSubmit={saveProject}>
-          <div className="grid two">
-            <label>
-              Name
-              <input
-                value={project.name}
-                onChange={(e) => setProject({ ...project, name: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              Location
-              <input
-                value={project.location ?? ''}
-                onChange={(e) => setProject({ ...project, location: e.target.value })}
-              />
-            </label>
-            <label>
-              Client display name
-              <input
-                value={project.clientDisplayName ?? ''}
-                onChange={(e) => setProject({ ...project, clientDisplayName: e.target.value })}
-              />
-            </label>
-            <label>
-              Priority
-              <select
-                value={project.priority}
-                onChange={(e) => setProject({ ...project, priority: e.target.value as Priority })}
-              >
-                <option value="HIGH">HIGH</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="LOW">LOW</option>
-              </select>
-            </label>
-            <label>
-              Project value
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={project.projectValue ?? ''}
-                onChange={(e) =>
-                  setProject({
-                    ...project,
-                    projectValue: e.target.value ? Number(e.target.value) : null,
-                  })
-                }
-              />
-            </label>
+        <h2>Project summary</h2>
+        <dl className="summary-grid">
+          <div className="summary-item">
+            <dt>Name</dt>
+            <dd>{project.name}</dd>
           </div>
-          <label>
-            Strategic note
-            <textarea
-              rows={2}
-              value={project.strategicNote ?? ''}
-              onChange={(e) => setProject({ ...project, strategicNote: e.target.value })}
-            />
-          </label>
-          <button type="submit">Save project</button>
-        </form>
+          <div className="summary-item">
+            <dt>Location</dt>
+            <dd>{project.location || '—'}</dd>
+          </div>
+          <div className="summary-item">
+            <dt>Client display name</dt>
+            <dd>{project.clientDisplayName || '—'}</dd>
+          </div>
+          <div className="summary-item">
+            <dt>Priority</dt>
+            <dd>
+              <span className={priorityChipClass(project.priority)}>{project.priority}</span>
+            </dd>
+          </div>
+          <div className="summary-item">
+            <dt>Project value (Admin-only)</dt>
+            <dd>{project.projectValue ?? '—'}</dd>
+          </div>
+          {project.strategicNote ? (
+            <div className="summary-item summary-item--full">
+              <dt>Strategic note</dt>
+              <dd>{project.strategicNote}</dd>
+            </div>
+          ) : null}
+        </dl>
       </section>
 
       <section className="card">
-        <h2>Site Lead activity (internal)</h2>
+        <h2>Site Lead activity</h2>
         <p className="muted">
-          Everything the Site Lead logged — drafts and published. Client only sees PUBLISHED via the
-          progress link.
+          Internal drafts and published updates. Clients only see published items via the progress
+          link. Drafts can be deleted; published updates cannot be hard-deleted.
         </p>
         <div className="filter-tabs" role="tablist" aria-label="Progress filter">
           <button
@@ -304,6 +361,17 @@ export default function ProjectDetailPage() {
                   <span>Created {formatDateTime(item.createdAt)}</span>
                   {item.publishedAt && <span> · Published {formatDateTime(item.publishedAt)}</span>}
                 </div>
+                {item.status === 'DRAFT' ? (
+                  <div className="row" style={{ marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className="btn btn--danger"
+                      onClick={() => setPendingDraft(item)}
+                    >
+                      Delete draft
+                    </button>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -311,24 +379,9 @@ export default function ProjectDetailPage() {
       </section>
 
       <section className="card">
-        <h2>Progress link (client)</h2>
-        <p className="muted">
-          Client only sees PUBLISHED via the progress link. Drafts stay internal (this page + Site
-          Lead app).
-        </p>
-        <p>
-          Path: <code>{project.progressPath}</code>
-        </p>
-        <p>
-          Token: <code>{project.progressToken}</code>
-        </p>
-        <p className="muted">Client web: http://localhost:5174{project.progressPath}</p>
-      </section>
-
-      <section className="card">
         <div className="section-head">
           <h2>Milestones</h2>
-          <button type="button" onClick={() => setDrawer('milestone')}>
+          <button type="button" className="btn" onClick={() => setMilestoneOpen(true)}>
             Add milestone
           </button>
         </div>
@@ -343,60 +396,7 @@ export default function ProjectDetailPage() {
         </ul>
       </section>
 
-      <section className="card">
-        <div className="section-head">
-          <h2>Assignments</h2>
-          <div className="row">
-            <button type="button" onClick={() => openAssign('SITE_LEAD')}>
-              Assign Site Lead
-            </button>
-            <button type="button" className="secondary" onClick={() => openAssign('CLIENT')}>
-              Assign Client
-            </button>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Role</th>
-              <th>User</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {project.assignments.map((a) => (
-              <tr key={a.id}>
-                <td>{a.assignmentRole}</td>
-                <td>
-                  {a.userFullName}
-                  <div className="muted">{a.userEmail}</div>
-                </td>
-                <td>
-                  <button className="danger" type="button" onClick={() => void removeAssignment(a)}>
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {project.assignments.length === 0 && (
-              <tr>
-                <td colSpan={3} className="muted">
-                  No assignments yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        <p className="muted" style={{ marginTop: '0.75rem' }}>
-          Need accounts? <Link to="/users/new">Create user</Link>
-        </p>
-      </section>
-
-      <SideDrawer
-        open={drawer === 'milestone'}
-        title="Add milestone"
-        onClose={() => setDrawer(null)}
-      >
+      <SideDrawer open={milestoneOpen} title="Add milestone" onClose={() => setMilestoneOpen(false)}>
         <form className="stack" onSubmit={addMilestone}>
           <label>
             Phase (optional)
@@ -411,37 +411,78 @@ export default function ProjectDetailPage() {
               autoFocus
             />
           </label>
-          <button type="submit">Save milestone</button>
-        </form>
-      </SideDrawer>
-
-      <SideDrawer
-        open={drawer === 'assign'}
-        title={assignRole === 'SITE_LEAD' ? 'Assign Site Lead' : 'Assign Client'}
-        onClose={() => setDrawer(null)}
-      >
-        <form className="stack" onSubmit={assign}>
-          {assignOptions.length === 0 ? (
-            <p className="muted">
-              No {assignRole} users yet. <Link to="/users/new">Create user</Link>
-            </p>
-          ) : (
-            <label>
-              User
-              <select value={assignUserId} onChange={(e) => setAssignUserId(e.target.value)}>
-                {assignOptions.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.fullName} ({u.email})
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <button type="submit" disabled={assignOptions.length === 0}>
-            Assign
+          <button type="submit" className="btn" disabled={savingMilestone}>
+            {savingMilestone ? (
+              <>
+                <span className="btn-spinner" aria-hidden />
+                Saving…
+              </>
+            ) : (
+              'Save milestone'
+            )}
           </button>
         </form>
       </SideDrawer>
+
+      <ConfirmDialog
+        open={pendingDraft != null}
+        title="Delete draft"
+        body={
+          pendingDraft ? (
+            <>
+              <p>
+                Delete draft <strong>{pendingDraft.title}</strong>?
+              </p>
+              <p className="muted">Only your team can see drafts. This removes it permanently.</p>
+            </>
+          ) : null
+        }
+        confirmLabel="Delete draft"
+        loading={deletingDraft}
+        onCancel={() => !deletingDraft && setPendingDraft(null)}
+        onConfirm={() => void confirmDeleteDraft()}
+      />
+
+      <ConfirmDialog
+        open={archiveOpen}
+        title="Archive project"
+        body={
+          <>
+            <p>
+              Archive <strong>{project.name}</strong>?
+            </p>
+            <ul className="confirm-list">
+              <li>Site Leads lose this project from their mobile list.</li>
+              <li>Progress, purchases, and labour stay (not deleted).</li>
+              <li>You can restore it later from this page or Edit project.</li>
+            </ul>
+          </>
+        }
+        confirmLabel="Archive project"
+        loading={archiving}
+        onCancel={() => !archiving && setArchiveOpen(false)}
+        onConfirm={() => void confirmArchive()}
+      />
+
+      <ConfirmDialog
+        open={unarchiveOpen}
+        title="Restore project"
+        body={
+          <>
+            <p>
+              Restore <strong>{project.name}</strong> to active?
+            </p>
+            <p className="muted">
+              Assigned Site Leads will see it again on mobile.
+            </p>
+          </>
+        }
+        confirmLabel="Restore project"
+        tone="primary"
+        loading={unarchiving}
+        onCancel={() => !unarchiving && setUnarchiveOpen(false)}
+        onConfirm={() => void confirmUnarchive()}
+      />
     </main>
   )
 }

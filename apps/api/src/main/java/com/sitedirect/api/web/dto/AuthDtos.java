@@ -27,6 +27,6 @@ public final class AuthDtos {
             @NotNull Role role) {
     }
 
-    public record UserResponse(UUID id, String email, String fullName, Role role) {
+    public record UserResponse(UUID id, String email, String fullName, Role role, boolean active) {
     }
 }

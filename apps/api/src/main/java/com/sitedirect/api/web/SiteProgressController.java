@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,5 +59,14 @@ public class SiteProgressController {
             @Valid @RequestBody PublishProgressRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return progressService.publish(projectId, progressId, request, principal);
+    }
+
+    @DeleteMapping("/projects/{projectId}/progress/{progressId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteDraft(
+            @PathVariable UUID projectId,
+            @PathVariable UUID progressId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        progressService.deleteDraftForSiteLead(projectId, progressId, principal);
     }
 }

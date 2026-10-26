@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, setToken } from '../api'
+import AdminChrome from '../components/AdminChrome'
+import PageHeader from '../components/PageHeader'
+import { api } from '../api'
 import type { Role } from '../api'
 
 export default function NewUserPage() {
@@ -15,6 +17,7 @@ export default function NewUserPage() {
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
+    if (saving) return
     setError(null)
     setSaving(true)
     try {
@@ -29,24 +32,13 @@ export default function NewUserPage() {
 
   return (
     <main className="shell">
-      <div className="topbar">
-        <div>
-          <Link to="/users">← Users</Link>
-          <p className="brand-mark">SiteDirect</p>
-          <h1>Create user</h1>
-          <p className="muted">Site Lead or Client accounts for project assignment.</p>
-        </div>
-        <button
-          className="secondary"
-          type="button"
-          onClick={() => {
-            setToken(null)
-            navigate('/login')
-          }}
-        >
-          Sign out
-        </button>
-      </div>
+      <AdminChrome active="users" />
+      <PageHeader
+        backTo="/users"
+        backLabel="← Users"
+        title="Create user"
+        subtitle="Site Lead or Client accounts for project assignment."
+      />
 
       <section className="card">
         <form className="stack" onSubmit={onCreate}>
@@ -79,8 +71,15 @@ export default function NewUserPage() {
           </div>
           {error && <p className="error">{error}</p>}
           <div className="row">
-            <button type="submit" disabled={saving}>
-              {saving ? 'Creating…' : 'Create user'}
+            <button type="submit" className="btn" disabled={saving}>
+              {saving ? (
+                <>
+                  <span className="btn-spinner" aria-hidden />
+                  Creating…
+                </>
+              ) : (
+                'Create user'
+              )}
             </button>
             <Link to="/users" className="button-link secondary">
               Cancel

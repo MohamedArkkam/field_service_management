@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -59,6 +60,35 @@ export function ProgressScreen({ route, navigation }: Props) {
     }
   }
 
+  function confirmDeleteDraft(item: ProgressUpdate) {
+    Alert.alert(
+      'Delete draft',
+      `Delete “${item.title}”? Only your team can see drafts — this removes it permanently.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete draft',
+          style: 'destructive',
+          onPress: () => void deleteDraft(item),
+        },
+      ],
+    )
+  }
+
+  async function deleteDraft(item: ProgressUpdate) {
+    if (!token) return
+    setBusy(true)
+    setError(null)
+    try {
+      await api.deleteDraftProgress(token, projectId, item.id)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <View style={styles.screen}>
       <FlatList
@@ -93,17 +123,26 @@ export function ProgressScreen({ route, navigation }: Props) {
             {item.note ? <Text style={styles.muted}>{item.note}</Text> : null}
             {item.photoUrl ? <Text style={styles.muted}>Photo: {item.photoUrl}</Text> : null}
             {item.status === 'DRAFT' ? (
-              <View style={styles.row}>
-                {[1, 2, 3, 4, 5].map((r) => (
-                  <Pressable
-                    key={r}
-                    style={styles.buttonSecondary}
-                    onPress={() => void publish(item, r)}
-                    disabled={busy}
-                  >
-                    <Text style={styles.buttonSecondaryText}>★{r}</Text>
-                  </Pressable>
-                ))}
+              <View style={{ gap: 8 }}>
+                <View style={styles.row}>
+                  {[1, 2, 3, 4, 5].map((r) => (
+                    <Pressable
+                      key={r}
+                      style={styles.buttonSecondary}
+                      onPress={() => void publish(item, r)}
+                      disabled={busy}
+                    >
+                      <Text style={styles.buttonSecondaryText}>★{r}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable
+                  style={styles.buttonDanger}
+                  onPress={() => confirmDeleteDraft(item)}
+                  disabled={busy}
+                >
+                  <Text style={styles.buttonDangerText}>Delete draft</Text>
+                </Pressable>
               </View>
             ) : null}
           </View>

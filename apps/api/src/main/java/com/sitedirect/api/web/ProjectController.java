@@ -75,9 +75,18 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{id}/assignments/{assignmentId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeAssignment(@PathVariable UUID id, @PathVariable UUID assignmentId) {
-        projectService.removeAssignment(id, assignmentId);
+    public ProjectResponse removeAssignment(@PathVariable UUID id, @PathVariable UUID assignmentId) {
+        return projectService.removeAssignment(id, assignmentId);
+    }
+
+    @PostMapping("/{id}/archive")
+    public ProjectResponse archive(@PathVariable UUID id) {
+        return projectService.archiveProject(id);
+    }
+
+    @PostMapping("/{id}/unarchive")
+    public ProjectResponse unarchive(@PathVariable UUID id) {
+        return projectService.unarchiveProject(id);
     }
 
     @GetMapping("/{id}/progress-link")

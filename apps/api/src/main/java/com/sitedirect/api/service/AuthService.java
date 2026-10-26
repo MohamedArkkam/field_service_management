@@ -74,11 +74,47 @@ public class AuthService {
                 .toList();
     }
 
+    @Transactional
+    public UserResponse deactivateUser(UUID userId) {
+        UserAccount user = userAccountRepository
+                .findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Cannot deactivate ADMIN users");
+        }
+        if (!user.isActive()) {
+            return toResponse(user);
+        }
+        user.setActive(false);
+        return toResponse(user);
+    }
+
+    @Transactional
+    public UserResponse reactivateUser(UUID userId) {
+        UserAccount user = userAccountRepository
+                .findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Cannot change ADMIN active state via this API");
+        }
+        if (user.isActive()) {
+            return toResponse(user);
+        }
+        user.setActive(true);
+        return toResponse(user);
+    }
+
     public UserResponse toResponse(UserAccount user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRole());
+        return new UserResponse(
+                user.getId(), user.getEmail(), user.getFullName(), user.getRole(), user.isActive());
     }
 
     public UserResponse toResponse(UserPrincipal principal) {
-        return new UserResponse(principal.getId(), principal.getUsername(), principal.getFullName(), principal.getRole());
+        return new UserResponse(
+                principal.getId(),
+                principal.getUsername(),
+                principal.getFullName(),
+                principal.getRole(),
+                principal.isEnabled());
     }
 }

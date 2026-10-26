@@ -55,7 +55,7 @@ public class ProgressService {
         return assignmentRepository.findByUserId(principal.getId()).stream()
                 .filter(a -> a.getAssignmentRole() == Role.SITE_LEAD)
                 .map(a -> projectRepository.findById(a.getProjectId()).orElse(null))
-                .filter(p -> p != null)
+                .filter(p -> p != null && !p.isArchived())
                 .map(p -> new SiteProjectSummary(
                         p.getId(),
                         p.getName(),
@@ -102,15 +102,41 @@ public class ProgressService {
     public ProgressUpdateResponse publish(
             UUID projectId, UUID progressId, PublishProgressRequest request, UserPrincipal principal) {
         requireAssignedSiteLead(projectId, principal);
+        ProgressUpdate update = requireProgressOnProject(projectId, progressId);
+        update.publish(request.rating());
+        requireProject(projectId).touch();
+        return toResponse(update, milestoneName(update.getMilestoneId()));
+    }
+
+    @Transactional
+    public void deleteDraftForSiteLead(UUID projectId, UUID progressId, UserPrincipal principal) {
+        requireAssignedSiteLead(projectId, principal);
+        deleteDraft(projectId, progressId);
+    }
+
+    @Transactional
+    public void deleteDraftForAdmin(UUID projectId, UUID progressId) {
+        requireProject(projectId);
+        deleteDraft(projectId, progressId);
+    }
+
+    private void deleteDraft(UUID projectId, UUID progressId) {
+        ProgressUpdate update = requireProgressOnProject(projectId, progressId);
+        if (update.getStatus() != ProgressStatus.DRAFT) {
+            throw new IllegalArgumentException("Only DRAFT progress can be deleted");
+        }
+        progressUpdateRepository.delete(update);
+        requireProject(projectId).touch();
+    }
+
+    private ProgressUpdate requireProgressOnProject(UUID projectId, UUID progressId) {
         ProgressUpdate update = progressUpdateRepository
                 .findById(progressId)
                 .orElseThrow(() -> new IllegalArgumentException("Progress update not found"));
         if (!update.getProjectId().equals(projectId)) {
             throw new IllegalArgumentException("Progress update does not belong to project");
         }
-        update.publish(request.rating());
-        requireProject(projectId).touch();
-        return toResponse(update, milestoneName(update.getMilestoneId()));
+        return update;
     }
 
     @Transactional(readOnly = true)
@@ -148,7 +174,10 @@ public class ProgressService {
 
     private void requireAssignedSiteLead(UUID projectId, UserPrincipal principal) {
         requireSiteLead(principal);
-        requireProject(projectId);
+        Project project = requireProject(projectId);
+        if (project.isArchived()) {
+            throw new IllegalArgumentException("Project is archived");
+        }
         ProjectAssignment assignment = assignmentRepository
                 .findByProjectIdAndUserId(projectId, principal.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Not assigned to this project"));
