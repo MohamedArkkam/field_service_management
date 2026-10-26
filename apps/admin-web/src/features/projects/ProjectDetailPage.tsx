@@ -235,7 +235,9 @@ export default function ProjectDetailPage() {
       <main className="shell shell--wide">
         <AdminChrome />
         <p>{error ?? 'Loading…'}</p>
-        <Link to="/">← Projects</Link>
+        <Link to="/" className="back-link">
+          ← Projects
+        </Link>
       </main>
     )
   }
@@ -259,16 +261,21 @@ export default function ProjectDetailPage() {
       <AdminChrome />
 
       <header className="project-chrome">
-        {/* Row 1: back | Edit */}
-        <div className="project-chrome-row">
+        {/* [ ← Projects ]  …title…  [Archive] [Edit project] */}
+        <div className="project-chrome-row project-chrome-row--main">
           <Link to="/" className="back-link">
             ← Projects
           </Link>
-          <div className="row">
+          <h1>{project.name}</h1>
+          <div className="row project-chrome-actions">
             {project.archived ? (
               <>
                 <span className="chip chip--archived">Archived</span>
-                <button type="button" className="btn" onClick={() => setUnarchiveOpen(true)}>
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  onClick={() => setUnarchiveOpen(true)}
+                >
                   Restore
                 </button>
               </>
@@ -283,45 +290,47 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Row 2: title | parties (+ client link icon) */}
-        <div className="project-chrome-row project-chrome-row--title">
-          <h1>{project.name}</h1>
-          <div className="project-chrome-parties" aria-label="Assigned parties">
-            <p className={siteLead ? 'party-line' : 'party-line is-unassigned'}>
-              <span className="party-role">Site Lead</span>
-              {' · '}
-              {siteLead ? siteLead.userFullName : 'Unassigned'}
-            </p>
-            <p className={client ? 'party-line' : 'party-line is-unassigned'}>
-              <span className="party-role">Client</span>
-              {' · '}
-              {client ? client.userFullName : 'Unassigned'}
-              <span className="party-client-wrap" ref={popoverRef}>
-                <button
-                  type="button"
-                  className="btn party-icon-btn"
-                  aria-label="Client progress link"
-                  aria-expanded={linkOpen}
-                  aria-haspopup="dialog"
-                  onClick={() => setLinkOpen((open) => !open)}
-                >
-                  ↗
-                </button>
-                {linkOpen ? (
-                  <div className="progress-popover" role="dialog" aria-label="Client progress link">
-                    <p className="muted">Published updates only — no drafts, bills, or wages.</p>
-                    <p className="muted">Path</p>
-                    <code>{project.progressPath}</code>
-                    <p className="muted">Local client URL</p>
-                    <code>{clientLocalUrl}</code>
-                    <button type="button" className="btn" onClick={() => void copyClientUrl()}>
-                      {copied ? 'Copied' : 'Copy'}
-                    </button>
-                  </div>
-                ) : null}
-              </span>
-            </p>
-          </div>
+        {project.archived ? (
+          <p className="muted project-chrome-archived-note">
+            Archived — hidden from Site Leads until restored.
+          </p>
+        ) : null}
+
+        <div className="project-chrome-parties" aria-label="Assigned parties">
+          <p className={siteLead ? 'party-line' : 'party-line is-unassigned'}>
+            <span className="party-role">Site Lead</span>
+            {' · '}
+            {siteLead ? siteLead.userFullName : 'Unassigned'}
+          </p>
+          <p className={client ? 'party-line' : 'party-line is-unassigned'}>
+            <span className="party-role">Client</span>
+            {' · '}
+            {client ? client.userFullName : 'Unassigned'}
+            <span className="party-client-wrap" ref={popoverRef}>
+              <button
+                type="button"
+                className="btn party-icon-btn"
+                aria-label="Client progress link"
+                aria-expanded={linkOpen}
+                aria-haspopup="dialog"
+                onClick={() => setLinkOpen((open) => !open)}
+              >
+                ↗
+              </button>
+              {linkOpen ? (
+                <div className="progress-popover" role="dialog" aria-label="Client progress link">
+                  <p className="muted">Published updates only — no drafts, bills, or wages.</p>
+                  <p className="muted">Path</p>
+                  <code>{project.progressPath}</code>
+                  <p className="muted">Local client URL</p>
+                  <code>{clientLocalUrl}</code>
+                  <button type="button" className="btn" onClick={() => void copyClientUrl()}>
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              ) : null}
+            </span>
+          </p>
         </div>
       </header>
 

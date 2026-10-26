@@ -370,7 +370,11 @@ export default function ProjectEditPage() {
               This project is archived. Site Leads do not see it on mobile. History, progress, and
               bills are kept. Restore to put it back in active Site Lead lists.
             </p>
-            <button type="button" className="btn" onClick={() => setUnarchiveOpen(true)}>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setUnarchiveOpen(true)}
+            >
               Restore project
             </button>
           </>
