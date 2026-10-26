@@ -719,24 +719,6 @@ tbody tr:hover {
   max-width: none;
 }
 
-.completion-visual {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.completion-copy {
-  flex: 1 1 12rem;
-  min-width: 0;
-}
-
-.completion-ring-text {
-  font-size: 0.85rem;
-  font-weight: 700;
-  fill: var(--text);
-}
-
 .completion-bar {
   height: 8px;
   border-radius: 4px;
