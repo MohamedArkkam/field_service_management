@@ -46,7 +46,7 @@ Only locked roles: **Admin / Owner**, **Site Lead**, **Client**.
 - Site purchases: Unpaid / Partial / Paid
 - Attendance; daily wage or monthly salary per worker
 - Multi-site under one company
-- Site Lead mobile app
+- Site Lead responsive web (`sitelead-web`); Expo native later
 
 ### 90/100
 - Clear outstanding (unpaid/partial) liability view for Admin
@@ -74,10 +74,10 @@ v1 is worth paying for / adopting because it stops daily chasing: owner sees mul
 | User | Web | Mobile | Device | Notification | API |
 |------|:---:|:------:|:------:|:------------:|:---:|
 | Admin / Owner | Yes (main door) | No (not required) | Desktop / laptop | Later (optional) | Via backend |
-| Site Lead | Optional support | **Yes (main door)** | Phone on site | Later (optional) | Via backend |
+| Site Lead | **Yes (main door, responsive web)** | Native Expo later | Phone browser on site | Later (optional) | Via backend |
 | Client | **Progress link only** | Browser on phone OK | Phone / laptop | No push in v1 | Read-only via backend |
 
-**v1 doors:** Admin = web · Site Lead = mobile app · Client = progress link (no full client app).
+**v1 doors:** Admin = web · Site Lead = **mobile-responsive web** (`apps/sitelead-web`) · Client = progress link. Native Expo (`apps/sitelead-mobile`) is deferred.
 
 ---
 
@@ -108,8 +108,8 @@ v1 is worth paying for / adopting because it stops daily chasing: owner sees mul
 ### Interaction mock (boxes + labelled arrows)
 
 ```text
-[Site Lead Mobile] --checklist / proof / publish--> [Core API]
-[Site Lead Mobile] --bills Unpaid|Partial|Paid + labour--> [Core API]
+[Site Lead Web] --checklist / proof / publish--> [Core API]
+[Site Lead Web] --bills Unpaid|Partial|Paid + labour--> [Core API]
 [Admin Web] --create project / assign / oversee--> [Core API]
 [Client Progress Link] --request progress--> [Core API]
 [Core API] --store / read--> [(PostgreSQL)]
@@ -127,7 +127,7 @@ v1 is worth paying for / adopting because it stops daily chasing: owner sees mul
 
 ![SiteDirect architecture interaction](./assets/interaction-flow.png)
 
-*Boxes and labelled arrows: who talks to the Core API and database (Admin Web, Site Lead Mobile, Client Progress Link).*
+*Boxes and labelled arrows: who talks to the Core API and database (Admin Web, Site Lead Web, Client Progress Link).*
 
 ### Interaction workflow diagram (users ↔ system)
 
@@ -174,7 +174,7 @@ sequenceDiagram
 - **What hurts:** no trusted progress chain; WhatsApp chasing.  
 - **What we refuse:** finance portal for client, ERP, marketplace.  
 - **Why Postgres + monolith:** records/money-like data + solo delivery.  
-- **Why mobile for Site Lead only:** that is where the daily pain is entered.
+- **Why phone-first for Site Lead only:** that is where the daily pain is entered (responsive web now; native later).
 
 ---
 
