@@ -14,7 +14,8 @@ Construction site progress and light site operations for a **single construction
 | `apps/api` | Core API — Java 21, Spring Boot, PostgreSQL, Flyway |
 | `apps/admin-web` | Admin / Owner — React + TypeScript |
 | `apps/client-web` | Client progress link — React + TypeScript |
-| `apps/sitelead-mobile` | Site Lead — React Native (Expo) |
+| `apps/sitelead-web` | Site Lead — mobile-responsive web (current door) |
+| `apps/sitelead-mobile` | Site Lead — Expo native (**future**; not v1 door) |
 
 ### Code map (where to look)
 
@@ -26,14 +27,15 @@ Construction site progress and light site operations for a **single construction
 | Progress / publish | (under projects pages) | `progress/` |
 | Bills / labour / liabilities | `src/features/liabilities` | `billslabour/` |
 | Shared UI / types | `src/shared/` | — |
-| Site Lead mobile | — | same API packages; app layout: `screens/`, `api/`, `auth/`, `ui/` |
+| Site Lead web | `apps/sitelead-web` | same `/api/site/...` packages |
+| Site Lead native (future) | `apps/sitelead-mobile` | same API; Expo later |
 | Client progress | `apps/client-web/src/pages` | `progress/` (public) |
 
 ## Product lock
 - Roles: **Admin / Owner**, **Site Lead**, **Client** only  
 - Client sees **progress only** (no company spend)  
 - Offline-first deferred (not M0–M3)  
-- API-first for Site Lead until M4  
+- Site Lead door: **sitelead-web** now; Expo native later
 
 ## M0 — local run
 ```bash
@@ -54,6 +56,12 @@ npm run dev
 cd apps/client-web
 npm install
 npm run dev -- --port 5174
+
+# Site Lead web (another terminal) — phone browser / responsive
+cd apps/sitelead-web
+npm install
+npm run dev
+# http://localhost:5175
 ```
 
 Copy `.env.example` if you need local env overrides (do not commit `.env`).
@@ -63,7 +71,7 @@ Copy `.env.example` if you need local env overrides (do not commit `.env`).
 - **M1** — auth/roles, projects, milestones, assignments, progress link token (merged)  
 - **M2** — publish gate (Site Lead approve + rate) + client progress view (`apps/client-web`)  
 - **M3** — site purchases + attendance/wages + Admin outstanding liabilities (API-first Site Lead)  
-- **M4** — Site Lead Expo app (Expo Go / online-required)  
+- **M4** — Site Lead door: **sitelead-web** (responsive); Expo native deferred (`sitelead-mobile`)
 - **M5** — hardening: integration tests, OpenAPI, CI, deploy-ready health/docs  
 
 
