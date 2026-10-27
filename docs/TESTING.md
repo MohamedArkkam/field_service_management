@@ -12,8 +12,8 @@
 
 ## Layers
 - **API / integration:** Spring Boot + Docker CLI PostgreSQL (`apps/api`)
-- **Web builds:** `admin-web` / `client-web` compile in CI
-- Site Lead mobile field checks: deferred to M4
+- **Web builds:** `admin-web` / `client-web` / `sitelead-web` compile in CI
+- Native Expo app: removed from repo for v1; recreate later if needed
 
 ## Run API tests locally
 Requires Docker CLI (`docker` on PATH) unless you point at an external Postgres via `SPRING_DATASOURCE_*`.

@@ -14,8 +14,7 @@ Construction site progress and light site operations for a **single construction
 | `apps/api` | Core API — Java 21, Spring Boot, PostgreSQL, Flyway |
 | `apps/admin-web` | Admin / Owner — React + TypeScript |
 | `apps/client-web` | Client progress link — React + TypeScript |
-| `apps/sitelead-web` | Site Lead — mobile-responsive web (current door) |
-| `apps/sitelead-mobile` | Site Lead — Expo native (**future**; not v1 door) |
+| `apps/sitelead-web` | Site Lead — mobile-responsive web (phone browser) |
 
 ### Code map (where to look)
 
@@ -28,14 +27,13 @@ Construction site progress and light site operations for a **single construction
 | Bills / labour / liabilities | `src/features/liabilities` | `billslabour/` |
 | Shared UI / types | `src/shared/` | — |
 | Site Lead web | `apps/sitelead-web` | same `/api/site/...` packages |
-| Site Lead native (future) | `apps/sitelead-mobile` | same API; Expo later |
 | Client progress | `apps/client-web/src/pages` | `progress/` (public) |
 
 ## Product lock
 - Roles: **Admin / Owner**, **Site Lead**, **Client** only  
 - Client sees **progress only** (no company spend)  
 - Offline-first deferred (not M0–M3)  
-- Site Lead door: **sitelead-web** now; Expo native later
+- Site Lead door: **sitelead-web** (native Expo not in repo; recreate later if needed)  
 
 ## M0 — local run
 ```bash
@@ -57,7 +55,7 @@ cd apps/client-web
 npm install
 npm run dev -- --port 5174
 
-# Site Lead web (another terminal) — phone browser / responsive
+# Site Lead web (another terminal)
 cd apps/sitelead-web
 npm install
 npm run dev
@@ -69,11 +67,7 @@ Copy `.env.example` if you need local env overrides (do not commit `.env`).
 ## Milestone status
 - **M0** — scaffold  
 - **M1** — auth/roles, projects, milestones, assignments, progress link token (merged)  
-- **M2** — publish gate (Site Lead approve + rate) + client progress view (`apps/client-web`)  
-- **M3** — site purchases + attendance/wages + Admin outstanding liabilities (API-first Site Lead)  
-- **M4** — Site Lead door: **sitelead-web** (responsive); Expo native deferred (`sitelead-mobile`)
+- **M2** — publish gate (Site Lead approve + publish) + client progress view (`apps/client-web`)  
+- **M3** — site purchases + attendance/wages + Admin outstanding liabilities  
+- **M4** — Site Lead responsive web (`apps/sitelead-web`); native Expo deferred / out of repo  
 - **M5** — hardening: integration tests, OpenAPI, CI, deploy-ready health/docs  
-
-
-
-

@@ -16,7 +16,7 @@ Internal money (purchases, wages) stays **company-only**. The client sees **appr
 | Principle | Practice |
 |-----------|----------|
 | Trust is visible | Draft never looks “live to client”; Publish is deliberate |
-| One job per screen | Especially Site Lead mobile — don’t mix publish + bills + attendance |
+| One job per screen | Especially Site Lead web — don’t mix publish + bills + attendance |
 | Role costume | Admin = scannable control tower; Site Lead = fast field; Client = calm timeline |
 | Tap > type (field) | Pickers, chips, large targets; short notes; photo URL/proof when available |
 | Status language | Shared chips for progress + payment — not colour alone |
@@ -31,7 +31,7 @@ Internal money (purchases, wages) stays **company-only**. The client sees **appr
 |------|------|--------|---------|
 | Admin web | Owner / Admin | Desktop / laptop | Medium–high, tables OK |
 | Client progress link | Client | Phone or laptop browser | Low, read-only, generous space |
-| Site Lead mobile | Site Lead | Phone (Expo) | Low field density, large controls |
+| Site Lead web | Site Lead | Phone browser (responsive) | Low field density, large controls |
 
 ## 4. Visual foundations
 
@@ -125,7 +125,7 @@ Publishing must feel heavier than “Save draft”:
 | Users | Create Admin / Site Lead / Client |
 | Liabilities | Outstanding Unpaid/Partial first; labour + purchases |
 
-### Site Lead mobile
+### Site Lead web
 | Screen | Intent |
 |--------|--------|
 | Login | Site Lead only; clear error if wrong role |

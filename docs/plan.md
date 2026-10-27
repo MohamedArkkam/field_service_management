@@ -46,7 +46,7 @@ Only locked roles: **Admin / Owner**, **Site Lead**, **Client**.
 - Site purchases: Unpaid / Partial / Paid
 - Attendance; daily wage or monthly salary per worker
 - Multi-site under one company
-- Site Lead responsive web (`sitelead-web`); Expo native later
+- Site Lead responsive web (`sitelead-web`); native Expo out of repo for v1
 
 ### 90/100
 - Clear outstanding (unpaid/partial) liability view for Admin
@@ -74,10 +74,10 @@ v1 is worth paying for / adopting because it stops daily chasing: owner sees mul
 | User | Web | Mobile | Device | Notification | API |
 |------|:---:|:------:|:------:|:------------:|:---:|
 | Admin / Owner | Yes (main door) | No (not required) | Desktop / laptop | Later (optional) | Via backend |
-| Site Lead | **Yes (main door, responsive web)** | Native Expo later | Phone browser on site | Later (optional) | Via backend |
+| Site Lead | **Yes (main door, responsive web)** | Native later if needed | Phone browser on site | Later (optional) | Via backend |
 | Client | **Progress link only** | Browser on phone OK | Phone / laptop | No push in v1 | Read-only via backend |
 
-**v1 doors:** Admin = web · Site Lead = **mobile-responsive web** (`apps/sitelead-web`) · Client = progress link. Native Expo (`apps/sitelead-mobile`) is deferred.
+**v1 doors:** Admin = web · Site Lead = **sitelead-web** · Client = progress link. Native Expo not kept in the monorepo for v1.
 
 ---
 
