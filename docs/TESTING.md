@@ -10,6 +10,9 @@
 7. Unassigned Site Lead cannot create/publish progress (400 “Not assigned…”)
 8. Re-publishing an already PUBLISHED update fails with 400 “already published”
 
+## Deferred
+- **Progress rating (1–5):** deferred. Publish sets status/publishedAt only; no rating request field, Admin/Client UI, or public DTO field. Column `progress_updates.rating` remains nullable/unused (`V6__defer_progress_rating`). Do not reinvent unless asked.
+
 ## Layers
 - **API / integration:** Spring Boot + Docker CLI PostgreSQL (`apps/api`)
 - **Web builds:** `admin-web` / `client-web` / `sitelead-web` compile in CI

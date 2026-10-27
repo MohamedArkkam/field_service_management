@@ -178,7 +178,7 @@ Features are grouped as **Core** (must ship), **90** (high everyday value), **10
 |------|------------------|--------------|-------------|
 | Administrator / Owner | Web | Portfolio dashboard, projects, users/assignments, bills, labour, progress overview | Create projects, set priority/value, assign Site Lead/Client, review unpaid bills and exceptions |
 | Site Lead | Mobile app | My sites, checklist, progress/proof, publish, purchases, attendance/wages | Direct work, log proof, approve+rate, log paid/unpaid/partial buys, mark attendance |
-| Client | Progress link (web) | Progress page | View approved progress, ratings, photos, dates |
+| Client | Progress link (web) | Progress page | View approved progress, photos, dates |
 
 Administrators access the system through a web browser. **Site Leads use a mobile application in Version 1** for field work. Clients use a responsive progress link in the browser. A separate native client app is not required.
 
@@ -234,7 +234,7 @@ Site Lead approves and rates an update. Only then does it become visible on the 
 
 ### 9.6 Client Progress View
 
-Client sees high-level approved progress: what is happening / what has been done, status/rating, photos, and dates. No bills, wages, attendance, or Admin priority/value.
+Client sees high-level approved progress: what is happening / what has been done, photos, and dates. No bills, wages, attendance, or Admin priority/value. (Rating deferred.)
 
 ### 9.7 Site Purchases
 

@@ -54,45 +54,60 @@ export default function UsersPage() {
     }
   }
 
-  function renderUserList(users: User[]) {
+  function renderUserTable(users: User[]) {
     if (users.length === 0) return null
     return (
-      <ul>
-        {users.map((u) => (
-          <li key={u.id} className="user-row">
-            <div className="user-row-meta">
-              <span>
-                {u.fullName} — {u.email}
-              </span>
-              {!u.active ? <span className="chip chip--inactive">Inactive</span> : null}
-            </div>
-            {u.active ? (
-              <button
-                type="button"
-                className="btn btn--danger"
-                onClick={() => setPending({ user: u, kind: 'deactivate' })}
-              >
-                Deactivate
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn"
-                onClick={() => setPending({ user: u, kind: 'reactivate' })}
-              >
-                Reactivate
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+      <table className="users-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((u) => (
+            <tr key={u.id}>
+              <td>{u.fullName}</td>
+              <td className="users-table-email">{u.email}</td>
+              <td>
+                {u.active ? (
+                  <span className="muted">Active</span>
+                ) : (
+                  <span className="chip chip--inactive">Inactive</span>
+                )}
+              </td>
+              <td>
+                {u.active ? (
+                  <button
+                    type="button"
+                    className="btn btn--quiet btn--danger btn--compact"
+                    onClick={() => setPending({ user: u, kind: 'deactivate' })}
+                  >
+                    Deactivate
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn--quiet btn--compact"
+                    onClick={() => setPending({ user: u, kind: 'reactivate' })}
+                  >
+                    Reactivate
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     )
   }
 
   const isDeactivate = pending?.kind === 'deactivate'
 
   return (
-    <main className="shell">
+    <main className="shell shell--wide">
       <AdminChrome active="users" />
       <PageHeader
         backTo="/"
@@ -119,7 +134,7 @@ export default function UsersPage() {
             </p>
           </div>
         ) : (
-          renderUserList(siteLeads)
+          renderUserTable(siteLeads)
         )}
       </section>
 
@@ -133,7 +148,7 @@ export default function UsersPage() {
             </p>
           </div>
         ) : (
-          renderUserList(clients)
+          renderUserTable(clients)
         )}
       </section>
 

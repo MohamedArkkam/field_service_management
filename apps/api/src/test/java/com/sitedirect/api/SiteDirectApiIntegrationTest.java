@@ -140,15 +140,15 @@ class SiteDirectApiIntegrationTest {
         JsonNode published = postJson(
                 "/api/site/projects/" + projectId + "/progress/" + progressId + "/publish",
                 leadToken,
-                Map.of("rating", 4),
+                null,
                 HttpStatus.OK);
         assertThat(published.get("status").asText()).isEqualTo("PUBLISHED");
-        assertThat(published.get("rating").asInt()).isEqualTo(4);
+        assertThat(published.has("rating")).isFalse();
 
         JsonNode after = getJson("/api/public/p/" + progressToken, null, HttpStatus.OK);
         assertThat(after.get("updates")).hasSize(1);
         assertThat(after.get("updates").get(0).get("title").asText()).isEqualTo("Footing poured");
-        assertThat(after.get("updates").get(0).get("rating").asInt()).isEqualTo(4);
+        assertThat(after.get("updates").get(0).has("rating")).isFalse();
         assertThat(after.toString()).doesNotContain("projectValue", "priority", "strategicNote");
     }
 
@@ -182,7 +182,7 @@ class SiteDirectApiIntegrationTest {
         postJson(
                 "/api/site/projects/" + projectId + "/progress/" + toPublish.get("id").asText() + "/publish",
                 leadToken,
-                Map.of("rating", 5),
+                null,
                 HttpStatus.OK);
 
         JsonNode adminList = getJson("/api/projects/" + projectId + "/progress", adminToken, HttpStatus.OK);
@@ -198,7 +198,7 @@ class SiteDirectApiIntegrationTest {
             }
             if ("PUBLISHED".equals(status) && "Slab cast".equals(item.get("title").asText())) {
                 sawPublished = true;
-                assertThat(item.get("rating").asInt()).isEqualTo(5);
+                assertThat(item.has("rating")).isFalse();
             }
         }
         assertThat(sawDraft).as("Admin list should include DRAFT").isTrue();
@@ -239,7 +239,7 @@ class SiteDirectApiIntegrationTest {
         JsonNode publishDenied = postJson(
                 "/api/site/projects/" + projectId + "/progress/" + draft.get("id").asText() + "/publish",
                 otherLeadToken,
-                Map.of("rating", 3),
+                null,
                 HttpStatus.BAD_REQUEST);
         assertThat(publishDenied.get("error").asText()).containsIgnoringCase("Not assigned");
     }
@@ -256,14 +256,14 @@ class SiteDirectApiIntegrationTest {
         postJson(
                 "/api/site/projects/" + projectId + "/progress/" + progressId + "/publish",
                 leadToken,
-                Map.of("rating", 4),
+                null,
                 HttpStatus.OK);
 
         // Current behaviour: IllegalArgumentException → 400 "Progress update already published"
         JsonNode second = postJson(
                 "/api/site/projects/" + projectId + "/progress/" + progressId + "/publish",
                 leadToken,
-                Map.of("rating", 5),
+                null,
                 HttpStatus.BAD_REQUEST);
         assertThat(second.get("error").asText()).containsIgnoringCase("already published");
     }

@@ -8,7 +8,7 @@ React + TypeScript (Vite) — **Client progress link** (read-only).
 
 ## M2
 - Route: `/p/{token}` → `GET /api/public/p/{token}`
-- Shows **published** progress only (title, note, optional photo URL, rating, date)
+- Shows **published** progress only (title, note, optional photo URL, date)
 - Never shows bills, wages, Admin priority/value, or drafts
 
 ```bash

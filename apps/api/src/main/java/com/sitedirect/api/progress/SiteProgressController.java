@@ -4,7 +4,6 @@ import com.sitedirect.api.security.UserPrincipal;
 import com.sitedirect.api.progress.ProgressService;
 import com.sitedirect.api.progress.ProgressDtos.CreateProgressRequest;
 import com.sitedirect.api.progress.ProgressDtos.ProgressUpdateResponse;
-import com.sitedirect.api.progress.ProgressDtos.PublishProgressRequest;
 import com.sitedirect.api.progress.ProgressDtos.SiteProjectSummary;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -56,9 +55,8 @@ public class SiteProgressController {
     public ProgressUpdateResponse publish(
             @PathVariable UUID projectId,
             @PathVariable UUID progressId,
-            @Valid @RequestBody PublishProgressRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return progressService.publish(projectId, progressId, request, principal);
+        return progressService.publish(projectId, progressId, principal);
     }
 
     @DeleteMapping("/projects/{projectId}/progress/{progressId}")

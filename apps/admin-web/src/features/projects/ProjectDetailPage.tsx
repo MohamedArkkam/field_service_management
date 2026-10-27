@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AdminChrome from '../../shared/components/AdminChrome'
+import CompletionMeter from '../../shared/components/CompletionMeter'
 import ConfirmDialog from '../../shared/components/ConfirmDialog'
 import SideDrawer from '../../shared/components/SideDrawer'
 import { projectsApi as api } from './api'
 import type { ProgressUpdate, ProjectDetail } from '../../shared/types'
+import { MILESTONE_CATALOG, milestonesByPhase } from './milestoneCatalog'
 
 type ProgressFilter = 'ALL' | 'DRAFT' | 'PUBLISHED'
 
@@ -34,8 +36,9 @@ export default function ProjectDetailPage() {
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('ALL')
   const [error, setError] = useState<string | null>(null)
   const [milestoneOpen, setMilestoneOpen] = useState(false)
-  const [milestoneName, setMilestoneName] = useState('')
-  const [phaseName, setPhaseName] = useState('')
+  const [selectedMilestoneIds, setSelectedMilestoneIds] = useState<Set<string>>(() => new Set())
+  const [customName, setCustomName] = useState('')
+  const [customPhase, setCustomPhase] = useState('')
   const [savingMilestone, setSavingMilestone] = useState(false)
   const [linkOpen, setLinkOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -88,14 +91,77 @@ export default function ProjectDetailPage() {
     }
   }, [linkOpen])
 
-  async function addMilestone(e: FormEvent) {
-    e.preventDefault()
+  const existingMilestoneNames = useMemo(() => {
+    const names = new Set<string>()
+    for (const m of project?.milestones ?? []) {
+      names.add(m.name.trim().toLowerCase())
+    }
+    return names
+  }, [project])
+
+  const catalogGroups = useMemo(() => milestonesByPhase(), [])
+
+  function openMilestoneDrawer() {
+    setSelectedMilestoneIds(new Set())
+    setCustomName('')
+    setCustomPhase('')
+    setMilestoneOpen(true)
+  }
+
+  function toggleMilestoneId(optionId: string, alreadyOnProject: boolean) {
+    if (alreadyOnProject) return
+    setSelectedMilestoneIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(optionId)) next.delete(optionId)
+      else next.add(optionId)
+      return next
+    })
+  }
+
+  async function addSelectedMilestones() {
+    if (!project || selectedMilestoneIds.size === 0 || savingMilestone) return
     setError(null)
     setSavingMilestone(true)
     try {
-      await api.addMilestone(id, { name: milestoneName, phaseName: phaseName || undefined })
-      setMilestoneName('')
-      setPhaseName('')
+      let sortOrder = project.milestones.length
+      const toAdd = MILESTONE_CATALOG.filter((m) => selectedMilestoneIds.has(m.id)).filter(
+        (m) => !existingMilestoneNames.has(m.name.toLowerCase()),
+      )
+      for (const m of toAdd) {
+        await api.addMilestone(id, {
+          name: m.name,
+          phaseName: m.phase,
+          sortOrder: sortOrder++,
+        })
+      }
+      setSelectedMilestoneIds(new Set())
+      setMilestoneOpen(false)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Milestone failed')
+    } finally {
+      setSavingMilestone(false)
+    }
+  }
+
+  async function addCustomMilestone(e: FormEvent) {
+    e.preventDefault()
+    const name = customName.trim()
+    if (!name || savingMilestone) return
+    if (existingMilestoneNames.has(name.toLowerCase())) {
+      setError('That milestone is already on this project')
+      return
+    }
+    setError(null)
+    setSavingMilestone(true)
+    try {
+      await api.addMilestone(id, {
+        name,
+        phaseName: customPhase.trim() || undefined,
+        sortOrder: project?.milestones.length ?? 0,
+      })
+      setCustomName('')
+      setCustomPhase('')
       setMilestoneOpen(false)
       await load()
     } catch (err) {
@@ -166,33 +232,50 @@ export default function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <main className="shell">
+      <main className="shell shell--wide">
         <AdminChrome />
         <p>{error ?? 'Loading…'}</p>
-        <Link to="/">← Projects</Link>
+        <Link to="/" className="back-link">
+          ← Projects
+        </Link>
       </main>
     )
   }
 
   const draftCount = progress.filter((p) => p.status === 'DRAFT').length
-  const publishedCount = progress.filter((p) => p.status === 'PUBLISHED').length
+  const published = progress.filter((p) => p.status === 'PUBLISHED')
+  const publishedCount = published.length
+  const milestonesWithPublishedProof = project.milestones.filter((m) =>
+    published.some((p) => p.milestoneId === m.id),
+  ).length
+  const lastPublishedAt =
+    published
+      .map((p) => p.publishedAt)
+      .filter((iso): iso is string => Boolean(iso))
+      .sort()
+      .at(-1) ?? null
   const clientLocalUrl = `http://localhost:5174${project.progressPath}`
 
   return (
-    <main className="shell">
+    <main className="shell shell--wide">
       <AdminChrome />
 
       <header className="project-chrome">
-        {/* Row 1: back | Edit */}
-        <div className="project-chrome-row">
+        {/* [ ← Projects ]  …title…  [Archive] [Edit project] */}
+        <div className="project-chrome-row project-chrome-row--main">
           <Link to="/" className="back-link">
             ← Projects
           </Link>
-          <div className="row">
+          <h1>{project.name}</h1>
+          <div className="row project-chrome-actions">
             {project.archived ? (
               <>
                 <span className="chip chip--archived">Archived</span>
-                <button type="button" className="btn" onClick={() => setUnarchiveOpen(true)}>
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  onClick={() => setUnarchiveOpen(true)}
+                >
                   Restore
                 </button>
               </>
@@ -207,45 +290,47 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Row 2: title | parties (+ client link icon) */}
-        <div className="project-chrome-row project-chrome-row--title">
-          <h1>{project.name}</h1>
-          <div className="project-chrome-parties" aria-label="Assigned parties">
-            <p className={siteLead ? 'party-line' : 'party-line is-unassigned'}>
-              <span className="party-role">Site Lead</span>
-              {' · '}
-              {siteLead ? siteLead.userFullName : 'Unassigned'}
-            </p>
-            <p className={client ? 'party-line' : 'party-line is-unassigned'}>
-              <span className="party-role">Client</span>
-              {' · '}
-              {client ? client.userFullName : 'Unassigned'}
-              <span className="party-client-wrap" ref={popoverRef}>
-                <button
-                  type="button"
-                  className="btn party-icon-btn"
-                  aria-label="Client progress link"
-                  aria-expanded={linkOpen}
-                  aria-haspopup="dialog"
-                  onClick={() => setLinkOpen((open) => !open)}
-                >
-                  ↗
-                </button>
-                {linkOpen ? (
-                  <div className="progress-popover" role="dialog" aria-label="Client progress link">
-                    <p className="muted">Published updates only — no drafts, bills, or wages.</p>
-                    <p className="muted">Path</p>
-                    <code>{project.progressPath}</code>
-                    <p className="muted">Local client URL</p>
-                    <code>{clientLocalUrl}</code>
-                    <button type="button" className="btn" onClick={() => void copyClientUrl()}>
-                      {copied ? 'Copied' : 'Copy'}
-                    </button>
-                  </div>
-                ) : null}
-              </span>
-            </p>
-          </div>
+        {project.archived ? (
+          <p className="muted project-chrome-archived-note">
+            Archived — hidden from Site Leads until restored.
+          </p>
+        ) : null}
+
+        <div className="project-chrome-parties" aria-label="Assigned parties">
+          <p className={siteLead ? 'party-line' : 'party-line is-unassigned'}>
+            <span className="party-role">Site Lead</span>
+            {' · '}
+            {siteLead ? siteLead.userFullName : 'Unassigned'}
+          </p>
+          <p className={client ? 'party-line' : 'party-line is-unassigned'}>
+            <span className="party-role">Client</span>
+            {' · '}
+            {client ? client.userFullName : 'Unassigned'}
+            <span className="party-client-wrap" ref={popoverRef}>
+              <button
+                type="button"
+                className="btn party-icon-btn"
+                aria-label="Client progress link"
+                aria-expanded={linkOpen}
+                aria-haspopup="dialog"
+                onClick={() => setLinkOpen((open) => !open)}
+              >
+                ↗
+              </button>
+              {linkOpen ? (
+                <div className="progress-popover" role="dialog" aria-label="Client progress link">
+                  <p className="muted">Published updates only — no drafts, bills, or wages.</p>
+                  <p className="muted">Path</p>
+                  <code>{project.progressPath}</code>
+                  <p className="muted">Local client URL</p>
+                  <code>{clientLocalUrl}</code>
+                  <button type="button" className="btn" onClick={() => void copyClientUrl()}>
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              ) : null}
+            </span>
+          </p>
         </div>
       </header>
 
@@ -253,37 +338,28 @@ export default function ProjectDetailPage() {
       {notice && <p className="notice">{notice}</p>}
 
       <section className="card">
-        <h2>Project summary</h2>
-        <dl className="summary-grid">
-          <div className="summary-item">
-            <dt>Name</dt>
-            <dd>{project.name}</dd>
-          </div>
-          <div className="summary-item">
-            <dt>Location</dt>
-            <dd>{project.location || '—'}</dd>
-          </div>
-          <div className="summary-item">
-            <dt>Client display name</dt>
-            <dd>{project.clientDisplayName || '—'}</dd>
-          </div>
-          <div className="summary-item">
-            <dt>Priority</dt>
-            <dd>
-              <span className={priorityChipClass(project.priority)}>{project.priority}</span>
-            </dd>
-          </div>
-          <div className="summary-item">
-            <dt>Project value (Admin-only)</dt>
-            <dd>{project.projectValue ?? '—'}</dd>
-          </div>
-          {project.strategicNote ? (
-            <div className="summary-item summary-item--full">
-              <dt>Strategic note</dt>
-              <dd>{project.strategicNote}</dd>
-            </div>
-          ) : null}
-        </dl>
+        <div className="section-head">
+          <h2>Milestones</h2>
+          <button type="button" className="btn" onClick={openMilestoneDrawer}>
+            Add milestones
+          </button>
+        </div>
+        <CompletionMeter
+          size="hero"
+          milestoneCount={project.milestones.length}
+          milestonesWithPublishedProof={milestonesWithPublishedProof}
+          publishedUpdateCount={publishedCount}
+          lastPublishedAt={lastPublishedAt}
+        />
+        <ul className="milestone-checklist-preview">
+          {project.milestones.map((m) => (
+            <li key={m.id}>
+              {m.phaseName ? `${m.phaseName} — ` : ''}
+              {m.name}
+            </li>
+          ))}
+          {project.milestones.length === 0 && <li className="muted">No milestones yet.</li>}
+        </ul>
       </section>
 
       <section className="card">
@@ -355,9 +431,6 @@ export default function ProjectDetailPage() {
                   </p>
                 )}
                 <div className="activity-meta muted">
-                  {item.status === 'PUBLISHED' && item.rating != null && (
-                    <span>Rating {item.rating}/5 · </span>
-                  )}
                   <span>Created {formatDateTime(item.createdAt)}</span>
                   {item.publishedAt && <span> · Published {formatDateTime(item.publishedAt)}</span>}
                 </div>
@@ -378,50 +451,138 @@ export default function ProjectDetailPage() {
         )}
       </section>
 
-      <section className="card">
-        <div className="section-head">
-          <h2>Milestones</h2>
-          <button type="button" className="btn" onClick={() => setMilestoneOpen(true)}>
-            Add milestone
-          </button>
-        </div>
-        <ul>
-          {project.milestones.map((m) => (
-            <li key={m.id}>
-              {m.phaseName ? `${m.phaseName} — ` : ''}
-              {m.name}
-            </li>
-          ))}
-          {project.milestones.length === 0 && <li className="muted">No milestones yet.</li>}
-        </ul>
+      <section className="card card--compact">
+        <h2>Project summary</h2>
+        <dl className="summary-grid summary-grid--compact">
+          <div className="summary-item">
+            <dt>Location</dt>
+            <dd>{project.location || '—'}</dd>
+          </div>
+          <div className="summary-item">
+            <dt>Client display name</dt>
+            <dd>{project.clientDisplayName || '—'}</dd>
+          </div>
+          <div className="summary-item">
+            <dt>Priority</dt>
+            <dd>
+              <span className={priorityChipClass(project.priority)}>{project.priority}</span>
+            </dd>
+          </div>
+          <div className="summary-item">
+            <dt>Project value (Admin-only)</dt>
+            <dd>{project.projectValue ?? '—'}</dd>
+          </div>
+          {project.strategicNote ? (
+            <div className="summary-item summary-item--full">
+              <dt>Strategic note</dt>
+              <dd>{project.strategicNote}</dd>
+            </div>
+          ) : null}
+        </dl>
       </section>
 
-      <SideDrawer open={milestoneOpen} title="Add milestone" onClose={() => setMilestoneOpen(false)}>
-        <form className="stack" onSubmit={addMilestone}>
-          <label>
-            Phase (optional)
-            <input value={phaseName} onChange={(e) => setPhaseName(e.target.value)} />
-          </label>
-          <label>
-            Milestone name
-            <input
-              value={milestoneName}
-              onChange={(e) => setMilestoneName(e.target.value)}
-              required
-              autoFocus
-            />
-          </label>
-          <button type="submit" className="btn" disabled={savingMilestone}>
+      <SideDrawer
+        open={milestoneOpen}
+        title="Add milestones"
+        onClose={() => !savingMilestone && setMilestoneOpen(false)}
+      >
+        <div className="stack milestone-picker">
+          <p className="muted">
+            Tick common milestones for this site, or add one custom name. No dates or BOQ — just the
+            checklist Site Leads publish against.
+          </p>
+
+          {selectedMilestoneIds.size > 0 ? (
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn--quiet btn--compact"
+                disabled={savingMilestone}
+                onClick={() => setSelectedMilestoneIds(new Set())}
+              >
+                Clear ticks
+              </button>
+            </div>
+          ) : null}
+
+          <div className="milestone-checklist">
+            {catalogGroups.map((group) => (
+              <fieldset key={group.phase} className="milestone-group">
+                <legend>{group.phase}</legend>
+                <ul className="milestone-option-list">
+                  {group.items.map((opt) => {
+                    const already = existingMilestoneNames.has(opt.name.toLowerCase())
+                    const checked = already || selectedMilestoneIds.has(opt.id)
+                    return (
+                      <li key={opt.id}>
+                        <label
+                          className={
+                            already ? 'milestone-option is-existing' : 'milestone-option'
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={already || savingMilestone}
+                            onChange={() => toggleMilestoneId(opt.id, already)}
+                          />
+                          <span>{opt.name}</span>
+                          {already ? <span className="muted">On project</span> : null}
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </fieldset>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="btn"
+            disabled={savingMilestone || selectedMilestoneIds.size === 0}
+            onClick={() => void addSelectedMilestones()}
+          >
             {savingMilestone ? (
               <>
                 <span className="btn-spinner" aria-hidden />
-                Saving…
+                Adding…
               </>
             ) : (
-              'Save milestone'
+              `Add selected (${selectedMilestoneIds.size})`
             )}
           </button>
-        </form>
+
+          <hr className="milestone-divider" />
+
+          <form className="stack" onSubmit={addCustomMilestone}>
+            <p className="muted">One-off custom milestone</p>
+            <label>
+              Phase (optional)
+              <input
+                value={customPhase}
+                onChange={(e) => setCustomPhase(e.target.value)}
+                disabled={savingMilestone}
+              />
+            </label>
+            <label>
+              Milestone name
+              <input
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                required
+                disabled={savingMilestone}
+              />
+            </label>
+            <button
+              type="submit"
+              className="btn btn--secondary"
+              disabled={savingMilestone || !customName.trim()}
+            >
+              Add custom
+            </button>
+          </form>
+        </div>
       </SideDrawer>
 
       <ConfirmDialog

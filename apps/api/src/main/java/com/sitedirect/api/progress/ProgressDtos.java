@@ -1,10 +1,6 @@
 package com.sitedirect.api.progress;
 
-import com.sitedirect.api.progress.ProgressStatus;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
@@ -22,9 +18,6 @@ public final class ProgressDtos {
             UUID milestoneId) {
     }
 
-    public record PublishProgressRequest(@NotNull @Min(1) @Max(5) Integer rating) {
-    }
-
     public record ProgressUpdateResponse(
             UUID id,
             UUID projectId,
@@ -34,7 +27,6 @@ public final class ProgressDtos {
             String note,
             String photoUrl,
             ProgressStatus status,
-            Integer rating,
             Instant createdAt,
             Instant publishedAt) {
     }
@@ -56,7 +48,6 @@ public final class ProgressDtos {
             String note,
             String photoUrl,
             String milestoneName,
-            int rating,
             Instant publishedAt) {
     }
 }

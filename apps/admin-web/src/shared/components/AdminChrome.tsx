@@ -12,48 +12,49 @@ type Props = {
 export default function AdminChrome({ active }: Props) {
   const navigate = useNavigate()
   const { isDirty } = useUnsavedChanges()
-  const [discardOpen, setDiscardOpen] = useState(false)
+  const [signOutOpen, setSignOutOpen] = useState(false)
 
   function signOut() {
     setToken(null)
     navigate('/login')
   }
 
-  function onSignOutClick() {
-    if (isDirty) {
-      setDiscardOpen(true)
-      return
-    }
-    signOut()
-  }
-
   return (
     <>
       <header className="app-header">
-        <Link to="/" className="brand-mark app-brand">
-          SiteDirect
-        </Link>
-        <div className="app-header-end">
-          <nav className="app-nav" aria-label="Admin">
-            <Link
-              to="/liabilities"
-              className={active === 'liabilities' ? 'nav-link is-active' : 'nav-link'}
+        <div className="app-header-inner">
+          <Link to="/" className="brand-mark app-brand">
+            SiteDirect
+          </Link>
+          <div className="app-header-end">
+            <nav className="app-nav" aria-label="Admin">
+              <Link
+                to="/liabilities"
+                className={active === 'liabilities' ? 'nav-link is-active' : 'nav-link'}
+              >
+                Liabilities
+              </Link>
+              <Link to="/users" className={active === 'users' ? 'nav-link is-active' : 'nav-link'}>
+                Users
+              </Link>
+            </nav>
+            <span className="app-nav-divider" aria-hidden="true" />
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => {
+                if (isDirty) setSignOutOpen(true)
+                else signOut()
+              }}
             >
-              Liabilities
-            </Link>
-            <Link to="/users" className={active === 'users' ? 'nav-link is-active' : 'nav-link'}>
-              Users
-            </Link>
-          </nav>
-          <span className="app-nav-divider" aria-hidden="true" />
-          <button type="button" className="btn btn--ghost" onClick={onSignOutClick}>
-            Sign out
-          </button>
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
       <ConfirmDialog
-        open={discardOpen}
+        open={signOutOpen}
         title="Discard and sign out?"
         body={
           <p className="muted">
@@ -63,9 +64,9 @@ export default function AdminChrome({ active }: Props) {
         confirmLabel="Discard and sign out"
         cancelLabel="Stay"
         tone="primary"
-        onCancel={() => setDiscardOpen(false)}
+        onCancel={() => setSignOutOpen(false)}
         onConfirm={() => {
-          setDiscardOpen(false)
+          setSignOutOpen(false)
           signOut()
         }}
       />

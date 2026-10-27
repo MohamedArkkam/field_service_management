@@ -14,15 +14,6 @@ function formatDate(iso: string) {
   }
 }
 
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span className="stars" aria-label={`Rated ${rating} of 5`}>
-      {'★'.repeat(rating)}
-      <span className="stars-empty">{'★'.repeat(Math.max(0, 5 - rating))}</span>
-    </span>
-  )
-}
-
 export default function ProgressPage() {
   const { token = '' } = useParams()
   const [data, setData] = useState<ClientProgress | null>(null)
@@ -89,7 +80,6 @@ export default function ProgressPage() {
                 <h2>{item.title}</h2>
                 <div className="update-meta">
                   <span className="chip chip--published">Published</span>
-                  <Stars rating={item.rating} />
                 </div>
               </div>
               {item.milestoneName && <p className="milestone">{item.milestoneName}</p>}

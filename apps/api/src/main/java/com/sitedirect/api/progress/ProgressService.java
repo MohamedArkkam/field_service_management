@@ -17,7 +17,6 @@ import com.sitedirect.api.progress.ProgressDtos.ClientProgressItem;
 import com.sitedirect.api.progress.ProgressDtos.ClientProgressResponse;
 import com.sitedirect.api.progress.ProgressDtos.CreateProgressRequest;
 import com.sitedirect.api.progress.ProgressDtos.ProgressUpdateResponse;
-import com.sitedirect.api.progress.ProgressDtos.PublishProgressRequest;
 import com.sitedirect.api.progress.ProgressDtos.SiteProjectSummary;
 import java.util.List;
 import java.util.Map;
@@ -99,11 +98,10 @@ public class ProgressService {
     }
 
     @Transactional
-    public ProgressUpdateResponse publish(
-            UUID projectId, UUID progressId, PublishProgressRequest request, UserPrincipal principal) {
+    public ProgressUpdateResponse publish(UUID projectId, UUID progressId, UserPrincipal principal) {
         requireAssignedSiteLead(projectId, principal);
         ProgressUpdate update = requireProgressOnProject(projectId, progressId);
-        update.publish(request.rating());
+        update.publish();
         requireProject(projectId).touch();
         return toResponse(update, milestoneName(update.getMilestoneId()));
     }
@@ -153,7 +151,6 @@ public class ProgressService {
                         u.getNote(),
                         u.getPhotoUrl(),
                         milestoneName(u.getMilestoneId()),
-                        u.getRating(),
                         u.getPublishedAt()))
                 .toList();
         return new ClientProgressResponse(
@@ -223,7 +220,6 @@ public class ProgressService {
                 update.getNote(),
                 update.getPhotoUrl(),
                 update.getStatus(),
-                update.getRating(),
                 update.getCreatedAt(),
                 update.getPublishedAt());
     }

@@ -67,6 +67,24 @@ button.danger:focus-visible {
   box-shadow: none;
 }
 
+/* Quiet danger — readable as destructive, quieter than primary Create */
+.btn--quiet.btn--danger {
+  --btn-fg: var(--danger);
+  --btn-hover: #fce8e8;
+  --btn-active: #f5d0d0;
+  color: var(--danger);
+}
+
+.btn--quiet.btn--danger:hover:not(:disabled):not(.is-loading) {
+  color: #7f1d1d;
+  background: var(--btn-hover);
+  box-shadow: none;
+}
+
+.btn--quiet.btn--danger:focus-visible {
+  outline-color: var(--danger);
+}
+
 /* Account / ghost — not nav, never primary green */
 .btn--ghost {
   --btn-bg: transparent;
@@ -87,6 +105,12 @@ button.danger:focus-visible {
 
 .btn--ghost:focus-visible {
   outline-color: var(--text-muted);
+}
+
+.btn--compact {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.85rem;
+  min-height: 2rem;
 }
 
 .btn:hover:not(:disabled):not(.is-loading),
@@ -154,14 +178,83 @@ button.is-loading,
 
 /* —— App chrome + page header —— */
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20; /* above cards; below drawers/dialogs */
+  min-height: 52px;
+  color: var(--header-fg);
+  /* Opaque full-bleed forest — content must not show through while stuck */
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: calc(-1 * var(--content-pad-x));
+  margin-bottom: calc(var(--space) * 3);
+  padding-top: calc(var(--space) * 1.5);
+  padding-bottom: calc(var(--space) * 1.5);
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Same max-width + gutter as .shell--wide so brand/nav share the content rail */
+.app-header-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1.25rem;
-  min-height: 52px;
-  margin-bottom: calc(var(--space) * 3);
-  padding: calc(var(--space) * 0.5) 0 calc(var(--space) * 2);
-  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--shell-max-wide);
+  margin: 0 auto;
+  padding-left: var(--content-pad-x);
+  padding-right: var(--content-pad-x);
+}
+
+.app-header .brand-mark,
+.app-header .app-brand {
+  color: var(--header-fg);
+}
+
+.app-header .nav-link {
+  color: var(--header-muted);
+}
+
+.app-header .nav-link:hover,
+.app-header .nav-link.is-active {
+  color: var(--header-fg);
+}
+
+.app-header .nav-link:focus-visible {
+  outline-color: var(--header-fg);
+}
+
+.app-header .app-nav-divider {
+  background: rgba(244, 241, 234, 0.22);
+}
+
+.app-header .btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: #ffffff;
+  --btn-hover: rgba(255, 255, 255, 0.12);
+  --btn-active: rgba(255, 255, 255, 0.18);
+  min-height: 40px;
+  padding: 0.45rem 0.9rem;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.72);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.app-header .btn--ghost:hover:not(:disabled):not(.is-loading) {
+  color: #ffffff;
+  background: var(--btn-hover);
+  border-color: #ffffff;
+  box-shadow: none;
+}
+
+.app-header .btn--ghost:focus-visible {
+  outline-color: #ffffff;
 }
 
 .app-brand {
@@ -272,28 +365,53 @@ button.is-loading,
   min-width: 8.5rem;
 }
 
+/* Quiet secondary nav — light fill + forest border; never solid primary green CTA */
 .back-link {
   display: inline-flex;
   align-items: center;
-  min-height: 2rem;
+  justify-content: center;
+  align-self: center;
+  min-height: 40px;
   margin: 0;
-  padding: 0.2rem 0;
-  font-size: 0.92rem;
+  padding: 0.5rem 0.95rem;
+  border: 2px solid #1f6b4a;
+  border-radius: var(--radius);
+  background: #e8f0eb;
+  color: #1a3d32;
+  font-size: 1rem;
   font-weight: 600;
+  line-height: 1.2;
   text-decoration: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  color: #1a3d32;
+  background: #ffffff;
+  border-color: #1a3d32;
+  box-shadow: none;
+  transform: none;
+}
+
+.back-link:active {
+  color: #1a3d32;
+  background: #dce8e1;
+  border-color: #1a3d32;
+  box-shadow: none;
+  transform: none;
 }
 
 .back-link:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
-/* Project detail — exact two-row chrome (row1 back|edit, row2 title|parties) */
+/* Project detail — [back] title [Archive][Edit]; parties below */
 .project-chrome {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
   margin-bottom: calc(var(--space) * 3);
 }
 
@@ -304,24 +422,41 @@ button.is-loading,
   gap: 1rem;
 }
 
-.project-chrome-row--title {
-  align-items: flex-start;
+.project-chrome-row--main {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
 }
 
-.project-chrome-row h1 {
+.project-chrome-row--main h1 {
   margin: 0;
-  font-size: clamp(1.65rem, 2.5vw, 2rem);
+  font-size: clamp(1.45rem, 2.2vw, 1.85rem);
   line-height: 1.2;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 1 1 12rem;
+}
+
+.project-chrome-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+  align-items: center;
+}
+
+.project-chrome-actions .btn,
+.project-chrome-actions .button-link {
+  min-height: 40px;
+}
+
+.project-chrome-archived-note {
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .project-chrome-parties {
-  display: grid;
-  gap: 0.4rem;
-  text-align: right;
-  flex: 0 0 auto;
-  max-width: 18rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  align-items: center;
 }
 
 .party-line {
@@ -332,7 +467,6 @@ button.is-loading,
   font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 0.35rem;
   flex-wrap: wrap;
 }
@@ -422,6 +556,19 @@ button.is-loading,
   grid-column: 1 / -1;
 }
 
+.summary-grid--compact {
+  gap: 0.65rem 1rem;
+}
+
+.summary-grid--compact .summary-item dd {
+  font-size: 0.92rem;
+}
+
+.milestone-checklist-preview {
+  margin: 0.85rem 0 0;
+  padding-left: 1.15rem;
+}
+
 /* Side drawer for short project-scoped creates */
 .drawer-root {
   position: fixed;
@@ -451,13 +598,78 @@ button.is-loading,
 
 .drawer-panel {
   position: relative;
-  width: min(400px, 100%);
+  width: min(440px, 100%);
   height: 100%;
   background: var(--surface);
   border-left: 1px solid var(--border);
   padding: 1.25rem;
   overflow-y: auto;
   box-shadow: none;
+}
+
+.milestone-picker {
+  gap: 1rem;
+}
+
+.milestone-checklist {
+  display: grid;
+  gap: 0.85rem;
+  max-height: min(48vh, 22rem);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.milestone-group {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.milestone-group legend {
+  padding: 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.milestone-option-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.milestone-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.milestone-option input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--accent);
+}
+
+.milestone-option.is-existing {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.milestone-option.is-existing > .muted {
+  margin-left: auto;
+  font-size: 0.78rem;
+}
+
+.milestone-divider {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 0.25rem 0;
 }
 
 .drawer-header {
@@ -493,9 +705,47 @@ h2 {
 }
 
 .shell {
-  max-width: 960px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: calc(var(--space) * 3) calc(var(--space) * 3) calc(var(--space) * 5);
+  padding: var(--content-pad-x) var(--content-pad-x) calc(var(--space) * 5);
+}
+
+/* List / table portfolio pages — same rail as .app-header-inner */
+.shell--wide {
+  max-width: var(--shell-max-wide);
+}
+
+.client-link-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  min-width: 9rem;
+}
+
+.client-link-path {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast {
+  position: fixed;
+  z-index: 90;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid #b7d4c4;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(28, 36, 32, 0.12);
 }
 
 .brand-mark {
@@ -512,6 +762,15 @@ h2 {
   border-radius: var(--radius);
   padding: calc(var(--space) * 2) calc(var(--space) * 2.25);
   margin-bottom: calc(var(--space) * 2);
+}
+
+.card--compact {
+  padding: calc(var(--space) * 1.5) calc(var(--space) * 1.75);
+}
+
+.card--compact h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.65rem;
 }
 
 .grid {
@@ -719,24 +978,6 @@ tbody tr:hover {
   max-width: none;
 }
 
-.completion-visual {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.completion-copy {
-  flex: 1 1 12rem;
-  min-width: 0;
-}
-
-.completion-ring-text {
-  font-size: 0.85rem;
-  font-weight: 700;
-  fill: var(--text);
-}
-
 .completion-bar {
   height: 8px;
   border-radius: 4px;
@@ -855,19 +1096,28 @@ tbody tr:hover {
     width: 100%;
   }
 
-  .project-chrome-row--title {
+  .project-chrome-row--main {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .project-chrome-row--main h1 {
+    flex: 1 1 auto;
+    order: 2;
+  }
+
+  .project-chrome-actions {
+    margin-left: 0;
+    order: 3;
+  }
+
+  .project-chrome-row--main .back-link {
+    order: 1;
+    align-self: flex-start;
   }
 
   .project-chrome-parties {
-    text-align: left;
-    max-width: none;
     width: 100%;
-  }
-
-  .party-line {
-    justify-content: flex-start;
   }
 
   .progress-popover {
@@ -951,18 +1201,20 @@ tbody tr:hover {
   color: #4a453c;
 }
 
-.user-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding: 0.35rem 0;
+.users-table th,
+.users-table td {
+  padding: 0.55rem 0.45rem;
+  vertical-align: middle;
 }
 
-.user-row-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+.users-table-email {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  word-break: break-all;
+}
+
+.users-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
 }
 
