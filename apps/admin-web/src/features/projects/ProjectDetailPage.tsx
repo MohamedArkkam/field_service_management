@@ -206,9 +206,9 @@ export default function ProjectDetailPage() {
       const updated = await api.archiveProject(project.id)
       setProject(updated)
       setArchiveOpen(false)
-      setNotice('Project archived. Site Leads no longer see it on mobile. You can restore it anytime.')
+      setNotice('Marked complete. Hidden from Site Lead Active list. Restore anytime to return it to Active.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Archive failed')
+      setError(err instanceof Error ? err.message : 'Mark complete failed')
     } finally {
       setArchiving(false)
     }
@@ -222,7 +222,7 @@ export default function ProjectDetailPage() {
       const updated = await api.unarchiveProject(project.id)
       setProject(updated)
       setUnarchiveOpen(false)
-      setNotice('Project restored. Assigned Site Leads can see it on mobile again.')
+      setNotice('Restored to Active. Assigned Site Leads can see it on My sites again.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Restore failed')
     } finally {
@@ -261,7 +261,7 @@ export default function ProjectDetailPage() {
       <AdminChrome />
 
       <header className="project-chrome">
-        {/* [ ← Projects ]  …title…  [Archive] [Edit project] */}
+        {/* [ ← Projects ]  …title…  [Mark complete|Restore] [Edit project] */}
         <div className="project-chrome-row project-chrome-row--main">
           <Link to="/" className="back-link">
             ← Projects
@@ -270,7 +270,7 @@ export default function ProjectDetailPage() {
           <div className="row project-chrome-actions">
             {project.archived ? (
               <>
-                <span className="chip chip--archived">Archived</span>
+                <span className="chip chip--archived">Completed</span>
                 <button
                   type="button"
                   className="btn btn--secondary"
@@ -281,7 +281,7 @@ export default function ProjectDetailPage() {
               </>
             ) : (
               <button type="button" className="btn btn--danger" onClick={() => setArchiveOpen(true)}>
-                Archive
+                Mark complete
               </button>
             )}
             <Link to={`/projects/${project.id}/edit`} className="button-link">
@@ -292,7 +292,7 @@ export default function ProjectDetailPage() {
 
         {project.archived ? (
           <p className="muted project-chrome-archived-note">
-            Archived — hidden from Site Leads until restored.
+            Completed — hidden from Site Lead Active list until restored.
           </p>
         ) : null}
 
@@ -606,20 +606,21 @@ export default function ProjectDetailPage() {
 
       <ConfirmDialog
         open={archiveOpen}
-        title="Archive project"
+        title="Mark project complete"
         body={
           <>
             <p>
-              Archive <strong>{project.name}</strong>?
+              Mark <strong>{project.name}</strong> complete?
             </p>
             <ul className="confirm-list">
-              <li>Site Leads lose this project from their mobile list.</li>
+              <li>Moves to the Completed tab in Admin Projects.</li>
+              <li>Site Leads lose it from their Active My sites list.</li>
               <li>Progress, purchases, and labour stay (not deleted).</li>
-              <li>You can restore it later from this page or Edit project.</li>
+              <li>Restore later from this page or Edit project.</li>
             </ul>
           </>
         }
-        confirmLabel="Archive project"
+        confirmLabel="Mark complete"
         loading={archiving}
         onCancel={() => !archiving && setArchiveOpen(false)}
         onConfirm={() => void confirmArchive()}
@@ -627,18 +628,18 @@ export default function ProjectDetailPage() {
 
       <ConfirmDialog
         open={unarchiveOpen}
-        title="Restore project"
+        title="Restore to Active"
         body={
           <>
             <p>
-              Restore <strong>{project.name}</strong> to active?
+              Restore <strong>{project.name}</strong> to Active?
             </p>
             <p className="muted">
-              Assigned Site Leads will see it again on mobile.
+              Assigned Site Leads will see it again on My sites.
             </p>
           </>
         }
-        confirmLabel="Restore project"
+        confirmLabel="Restore"
         tone="primary"
         loading={unarchiving}
         onCancel={() => !unarchiving && setUnarchiveOpen(false)}

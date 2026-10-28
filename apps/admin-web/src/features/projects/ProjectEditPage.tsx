@@ -162,7 +162,7 @@ export default function ProjectEditPage() {
       setArchiveOpen(false)
       navigate(`/projects/${project.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Archive failed')
+      setError(err instanceof Error ? err.message : 'Mark complete failed')
     } finally {
       setArchiving(false)
     }
@@ -363,29 +363,29 @@ export default function ProjectEditPage() {
       </section>
 
       <section className="card">
-        <h2>Archive</h2>
+        <h2>Completed</h2>
         {project.archived ? (
           <>
             <p className="muted">
-              This project is archived. Site Leads do not see it on mobile. History, progress, and
-              bills are kept. Restore to put it back in active Site Lead lists.
+              This project is completed. Site Leads do not see it on My sites. History, progress, and
+              bills are kept. Restore to put it back on the Active list.
             </p>
             <button
               type="button"
               className="btn btn--secondary"
               onClick={() => setUnarchiveOpen(true)}
             >
-              Restore project
+              Restore to Active
             </button>
           </>
         ) : (
           <>
             <p className="muted">
-              Archive hides the project from Site Lead lists. Progress, bills, and labour are kept —
-              this is not a hard delete. You can restore it later.
+              Mark complete when the site is finished. It moves to the Completed tab and leaves Site
+              Lead Active lists. Progress, bills, and labour are kept — not a hard delete.
             </p>
             <button type="button" className="btn btn--danger" onClick={() => setArchiveOpen(true)}>
-              Archive project
+              Mark complete
             </button>
           </>
         )}
@@ -438,21 +438,22 @@ export default function ProjectEditPage() {
 
       <ConfirmDialog
         open={archiveOpen}
-        title="Archive project"
+        title="Mark project complete"
         body={
           <>
             <p>
-              Archive <strong>{project.name}</strong>?
+              Mark <strong>{project.name}</strong> complete?
             </p>
             <ul className="confirm-list">
-              <li>Site Leads lose this project from their mobile list.</li>
+              <li>Moves to the Completed tab in Admin Projects.</li>
+              <li>Site Leads lose it from their Active My sites list.</li>
               <li>Progress, purchases, and labour stay (not deleted).</li>
               <li>Published client link still works until you remove the Client assignment.</li>
-              <li>You can restore the project later from this page.</li>
+              <li>You can restore later from this page.</li>
             </ul>
           </>
         }
-        confirmLabel="Archive project"
+        confirmLabel="Mark complete"
         loading={archiving}
         onCancel={() => !archiving && setArchiveOpen(false)}
         onConfirm={() => void confirmArchive()}
@@ -460,18 +461,18 @@ export default function ProjectEditPage() {
 
       <ConfirmDialog
         open={unarchiveOpen}
-        title="Restore project"
+        title="Restore to Active"
         body={
           <>
             <p>
-              Restore <strong>{project.name}</strong> to active?
+              Restore <strong>{project.name}</strong> to Active?
             </p>
             <p className="muted">
-              Assigned Site Leads will see it again on mobile. Archive status is cleared.
+              Assigned Site Leads will see it again on My sites.
             </p>
           </>
         }
-        confirmLabel="Restore project"
+        confirmLabel="Restore"
         tone="primary"
         loading={unarchiving}
         onCancel={() => !unarchiving && setUnarchiveOpen(false)}

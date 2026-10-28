@@ -98,8 +98,14 @@ export default function ProjectsPage() {
 
       {loading ? <p className="muted">Loading…</p> : null}
 
+      {!loading ? (
+        <p className="muted" style={{ marginBottom: '0.75rem' }}>
+          Active sites only. Completed projects are hidden until Admin restores them.
+        </p>
+      ) : null}
+
       {!loading && projects.length === 0 ? (
-        <p className="muted">No assigned projects yet. Ask Admin to assign you.</p>
+        <p className="muted">No active assigned sites. Ask Admin to assign you or restore a completed project.</p>
       ) : null}
 
       <ul className="card-list">
