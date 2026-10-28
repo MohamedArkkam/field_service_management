@@ -8,16 +8,14 @@ import {
   markProjectsSeen,
 } from '../attention/seenProjects'
 import { useAuth } from '../auth/AuthContext'
-import ConfirmDialog from '../components/ConfirmDialog'
 import ErrorBox from '../components/ErrorBox'
 import PageChrome from '../components/PageChrome'
 
 export default function ProjectsPage() {
-  const { token, user, logout } = useAuth()
+  const { token, user } = useAuth()
   const [projects, setProjects] = useState<SiteProject[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [signOutOpen, setSignOutOpen] = useState(false)
   const [seenTick, setSeenTick] = useState(0)
 
   const load = useCallback(async () => {
@@ -68,19 +66,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <PageChrome
-      title="My sites"
-      subtitle={user?.fullName ?? 'Site Lead'}
-      actions={
-        <button
-          type="button"
-          className="btn btn--ghost btn--account"
-          onClick={() => setSignOutOpen(true)}
-        >
-          Sign out
-        </button>
-      }
-    >
+    <PageChrome title="My sites" subtitle={user?.fullName ?? 'Site Lead'}>
       <ErrorBox message={error} onRetry={() => void load()} />
 
       {!loading && newProjects.length > 0 ? (
@@ -105,10 +91,12 @@ export default function ProjectsPage() {
       ) : null}
 
       {!loading && projects.length === 0 ? (
-        <p className="muted">No active assigned sites. Ask Admin to assign you or restore a completed project.</p>
+        <p className="muted">
+          No active assigned sites. Ask Admin to assign you or restore a completed project.
+        </p>
       ) : null}
 
-      <ul className="card-list">
+      <ul className="card-list mobile-only">
         {sorted.map((p) => {
           const isNew = user ? isProjectNew(user.id, p.id) : false
           return (
@@ -127,18 +115,45 @@ export default function ProjectsPage() {
         })}
       </ul>
 
-      <ConfirmDialog
-        open={signOutOpen}
-        title="Sign out?"
-        body={<p className="muted">You will need to sign in again to use Site Lead.</p>}
-        confirmLabel="Sign out"
-        cancelLabel="Stay"
-        onCancel={() => setSignOutOpen(false)}
-        onConfirm={() => {
-          setSignOutOpen(false)
-          logout()
-        }}
-      />
+      {!loading && sorted.length > 0 ? (
+        <section className="card desktop-only">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>Client</th>
+                <th>Location</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((p) => {
+                const isNew = user ? isProjectNew(user.id, p.id) : false
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <Link to={`/projects/${p.id}`}>{p.name}</Link>
+                      {isNew ? (
+                        <>
+                          {' '}
+                          <span className="badge-new">NEW</span>
+                        </>
+                      ) : null}
+                    </td>
+                    <td>{p.clientDisplayName ?? '—'}</td>
+                    <td>{p.location ?? '—'}</td>
+                    <td>
+                      <Link className="btn btn--secondary" to={`/projects/${p.id}`}>
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </section>
+      ) : null}
     </PageChrome>
   )
 }

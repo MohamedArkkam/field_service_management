@@ -33,37 +33,39 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="shell shell--center">
-      <p className="brand">SiteDirect</p>
-      <h1>Site Lead</h1>
-      <p className="muted">Online required · phone-friendly web</p>
+    <main className="shell shell--wide shell--center">
+      <div className="card stack login-card">
+        <p className="brand-mark">SiteDirect</p>
+        <h1>Site Lead</h1>
+        <p className="muted">Field door — phone-friendly; laptop uses Admin-like chrome after sign-in</p>
 
-      <form className="card stack" onSubmit={onSubmit}>
-        <label>
-          Email
-          <input
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        <ErrorBox message={error} onRetry={error ? () => void doLogin() : undefined} />
-        <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
+        <form className="stack" onSubmit={onSubmit}>
+          <label>
+            Email
+            <input
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          <ErrorBox message={error} onRetry={error ? () => void doLogin() : undefined} />
+          <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
+            {busy ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+      </div>
     </main>
   )
 }

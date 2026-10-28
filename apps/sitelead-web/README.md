@@ -1,8 +1,8 @@
 # Site Lead web (`apps/sitelead-web`)
 
-Mobile-responsive **React + TypeScript** door for **Site Lead** — phone browser first, online required. Uses Core API `/api/site/...` (same contracts as the future native app).
+Mobile-responsive **React + TypeScript** door for **Site Lead** — phone browser first, online required. On laptop/desktop (≥768px) uses Admin-like sticky chrome, wide content rail, and tables; phone keeps large card taps. Uses Core API `/api/site/...`.
 
-**Not** merged into Admin web. Native Expo lives in `apps/sitelead-mobile` for later.
+**Not** merged into Admin web. Native Expo is out of the monorepo for v1.
 
 ## Screens
 - Login (`SITE_LEAD` only — other roles rejected)

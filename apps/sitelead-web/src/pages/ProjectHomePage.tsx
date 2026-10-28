@@ -30,7 +30,7 @@ export default function ProjectHomePage() {
   return (
     <PageChrome title={name} subtitle="Site Lead fast path" backTo="/" backLabel="← My sites">
       <ErrorBox message={error} />
-      <ul className="card-list">
+      <ul className="card-list home-nav-grid">
         <li>
           <Link className="card-link" to={`/projects/${projectId}/progress`}>
             <span className="card-link-head">

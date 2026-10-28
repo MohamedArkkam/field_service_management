@@ -73,7 +73,7 @@ export default function PurchasesPage() {
       {loading ? <p className="muted">Loading…</p> : null}
       {!loading && items.length === 0 ? <p className="muted">No purchases yet.</p> : null}
 
-      <ul className="card-list">
+      <ul className="card-list mobile-only">
         {items.map((item) => (
           <li key={item.id} className="card">
             <div className="row-between">
@@ -103,6 +103,60 @@ export default function PurchasesPage() {
           </li>
         ))}
       </ul>
+
+      {!loading && items.length > 0 ? (
+        <section className="card desktop-only">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th>Paid</th>
+                <th>Update paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <strong>{item.description}</strong>
+                    {item.vendorName ? <div className="muted">{item.vendorName}</div> : null}
+                  </td>
+                  <td>
+                    <span className="chip">{item.paymentStatus}</span>
+                  </td>
+                  <td>{item.amount}</td>
+                  <td>
+                    {item.amountPaid}{' '}
+                    <span className="muted">(out {item.outstanding})</span>
+                  </td>
+                  <td>
+                    <div className="row-actions">
+                      <input
+                        inputMode="decimal"
+                        style={{ width: '6.5rem', minHeight: '2.25rem' }}
+                        value={paidEdits[item.id] ?? ''}
+                        onChange={(e) =>
+                          setPaidEdits((prev) => ({ ...prev, [item.id]: e.target.value }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="btn btn--secondary"
+                        disabled={busy}
+                        onClick={() => void savePayment(item)}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ) : null}
     </PageChrome>
   )
 }

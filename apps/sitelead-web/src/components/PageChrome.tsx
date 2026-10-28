@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import SiteLeadChrome from './SiteLeadChrome'
 
 type Props = {
   title: string
   subtitle?: string
   backTo?: string
   backLabel?: string
-  /** Account / primary chrome — sits top-right of the title row */
+  /** Primary page actions (e.g. New draft) — not Sign out (that lives in the sticky chrome) */
   actions?: ReactNode
   children: ReactNode
 }
@@ -20,21 +21,24 @@ export default function PageChrome({
   children,
 }: Props) {
   return (
-    <main className="shell">
-      <header className="page-chrome">
-        {backTo ? (
-          <Link to={backTo} className="back-link">
-            {backLabel}
-          </Link>
-        ) : null}
-        <div className="page-chrome-main">
-          <div className="page-chrome-text">
-            <h1>{title}</h1>
-            {subtitle ? <p className="muted">{subtitle}</p> : null}
-          </div>
-          {actions ? <div className="page-chrome-account">{actions}</div> : null}
+    <main className="shell shell--wide">
+      <SiteLeadChrome />
+      <div className="page-header">
+        <div className="page-header-text">
+          {backTo ? (
+            <Link to={backTo} className="back-link">
+              {backLabel}
+            </Link>
+          ) : null}
+          <h1>{title}</h1>
+          {subtitle ? <p className="muted page-subtitle">{subtitle}</p> : null}
         </div>
-      </header>
+        {actions ? (
+          <div className="page-header-aside">
+            <div className="page-header-actions">{actions}</div>
+          </div>
+        ) : null}
+      </div>
       {children}
     </main>
   )

@@ -77,7 +77,7 @@ export default function ProgressPage() {
       {loading ? <p className="muted">Loading…</p> : null}
       {!loading && items.length === 0 ? <p className="muted">No progress updates yet.</p> : null}
 
-      <ul className="card-list">
+      <ul className="card-list mobile-only">
         {items.map((item) => (
           <li key={item.id} className="card">
             <div className="row-between">
@@ -117,6 +117,69 @@ export default function ProgressPage() {
           </li>
         ))}
       </ul>
+
+      {!loading && items.length > 0 ? (
+        <section className="card desktop-only">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Note</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <strong>{item.title}</strong>
+                    {item.photoUrl ? (
+                      <div>
+                        <a href={item.photoUrl} target="_blank" rel="noreferrer">
+                          Photo
+                        </a>
+                      </div>
+                    ) : null}
+                  </td>
+                  <td>
+                    <span
+                      className={item.status === 'PUBLISHED' ? 'chip chip--ok' : 'chip chip--warn'}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="muted">{item.note ?? '—'}</td>
+                  <td>
+                    {item.status === 'DRAFT' ? (
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="btn btn--primary"
+                          disabled={busy}
+                          onClick={() => void publish(item)}
+                        >
+                          Publish
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--danger"
+                          disabled={busy}
+                          onClick={() => void deleteDraft(item)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="muted">Published</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ) : null}
     </PageChrome>
   )
 }
